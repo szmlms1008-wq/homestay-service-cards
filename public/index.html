@@ -44,6 +44,88 @@ body {
   padding: 0 20px;
 }
 
+/* Scroll progress bar */
+#progressBar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--primary), #e8a87c);
+  z-index: 9999; width: 0%;
+  transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Staggered reveal for list items */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-stagger.visible > *:nth-child(1) { transition-delay: 0s; }
+.reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.1s; }
+.reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.2s; }
+.reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.3s; }
+.reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.4s; }
+.reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.5s; }
+.reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
+
+/* Card lift on hover */
+.card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.card:hover { transform: translateY(-3px); }
+
+/* Hero parallax */
+.hero-bg img { transition: transform 0.3s ease-out; }
+
+/* Float animation for icons */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-icon { animation: float 3s ease-in-out infinite; }
+
+/* Button pulse */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(212,137,106,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(212,137,106,0); }
+  100% { box-shadow: 0 0 0 0 rgba(212,137,106,0); }
+}
+.btn-pulse { animation: pulse 2s infinite; }
+
+/* Marquee pause on hover */
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Product card image hover zoom */
+.product-img img {
+  transition: transform 0.4s ease;
+}
+.product-card:hover .product-img img {
+  transform: scale(1.05);
+}
+
+/* Step number reveal */
+@keyframes countIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Toast pop */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  50% { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.msg-feedback.show { display: block !important; animation: popIn 0.3s ease; }
+
 /* Section alternation */
 section { padding: 56px 0; }
 section:nth-of-type(odd) { background: var(--canvas); }
@@ -355,9 +437,10 @@ section:nth-of-type(even) { background: var(--surface-soft); }
 </style>
 </head>
 <body>
+<div id="progressBar"></div>
 
 <!-- ====== 1. Hero: 民宿简介 ====== -->
-<section id="homestay">
+<section id="homestay" class="reveal">
   <div class="container">
     <div class="hero-wrap">
       <div class="hero-bg" id="heroBg"></div>
@@ -373,48 +456,48 @@ section:nth-of-type(even) { background: var(--surface-soft); }
 </section>
 
 <!-- ====== 2. 入住导引 ====== -->
-<section id="guide">
+<section id="guide" class="reveal">
   <div class="container">
-    <h2 class="section-title">🚪 入住导引</h2>
+    <h2 class="section-title"><span class="float-icon">🚪</span> 入住导引</h2>
     <p class="section-subtitle">跟着步骤走，轻松找到我们</p>
-    <div id="guideSteps" style="display:flex;flex-direction:column;gap:28px;"></div>
+    <div id="guideSteps" class="reveal-stagger" style="display:flex;flex-direction:column;gap:28px;"></div>
   </div>
 </section>
 
 <!-- ====== 3. 景区攻略 ====== -->
-<section id="attractions">
+<section id="attractions" class="reveal">
   <div class="container">
-    <h2 class="section-title">🗺️ 景区攻略</h2>
+    <h2 class="section-title"><span class="float-icon">🗺️</span> 景区攻略</h2>
     <p class="section-subtitle">周边好玩的地方推荐</p>
-    <div class="scroll-x" id="attrList"></div>
+    <div class="scroll-x reveal-stagger" id="attrList"></div>
     <div class="guide-map-wrap" id="guideMapWrap"></div>
   </div>
 </section>
 
 <!-- ====== 4. 到达路线 ====== -->
-<section id="routes">
+<section id="routes" class="reveal">
   <div class="container">
-    <h2 class="section-title">📍 到达路线</h2>
+    <h2 class="section-title"><span class="float-icon">📍</span> 到达路线</h2>
     <p class="section-subtitle">多种交通方式，轻松抵达</p>
-    <div style="display:flex;flex-direction:column;gap:16px;" id="routeList"></div>
+    <div class="reveal-stagger" style="display:flex;flex-direction:column;gap:16px;" id="routeList"></div>
   </div>
 </section>
 
 <!-- ====== 5. 周边小吃 ====== -->
-<section id="food">
+<section id="food" class="reveal">
   <div class="container">
-    <h2 class="section-title">🍜 周边小吃推荐</h2>
+    <h2 class="section-title"><span class="float-icon">🍜</span> 周边小吃推荐</h2>
     <p class="section-subtitle">本地人都爱吃的老店</p>
-    <div style="display:flex;flex-direction:column;gap:14px;" id="foodList"></div>
+    <div class="reveal-stagger" style="display:flex;flex-direction:column;gap:14px;" id="foodList"></div>
   </div>
 </section>
 
 <!-- ====== 6. 民宿好物 ====== -->
-<section id="products">
+<section id="products" class="reveal">
   <div class="container">
-    <h2 class="section-title">🛍️ 民宿好物</h2>
+    <h2 class="section-title"><span class="float-icon">🛍️</span> 民宿好物</h2>
     <p class="section-subtitle">把山居的味道带回家</p>
-    <div class="product-grid" id="productList"></div>
+    <div class="product-grid reveal-stagger" id="productList"></div>
   </div>
 </section>
 
@@ -429,18 +512,18 @@ section:nth-of-type(even) { background: var(--surface-soft); }
 </div>
 
 <!-- ====== 7. 温馨提示 ====== -->
-<section id="tips">
+<section id="tips" class="reveal">
   <div class="container">
-    <h2 class="section-title">💡 温馨提示</h2>
+    <h2 class="section-title"><span class="float-icon">💡</span> 温馨提示</h2>
     <p class="section-subtitle">入住小贴士，让您住得更舒心</p>
     <div class="card" id="tipsContent"></div>
   </div>
 </section>
 
 <!-- ====== 8. 留言板 ====== -->
-<section id="messages">
+<section id="messages" class="reveal">
   <div class="container">
-    <h2 class="section-title">📝 留言板</h2>
+    <h2 class="section-title"><span class="float-icon">📝</span> 留言板</h2>
     <p class="section-subtitle">说说您的入住体验吧</p>
     <div class="msg-input-row">
       <input class="msg-input" id="msgInput" type="text" maxlength="200" placeholder="想说点什么...">
@@ -662,8 +745,8 @@ async function submitMsg() {
   if (r.ok) {
     inp.value = '';
     const ok = document.getElementById('msgOk');
-    ok.style.display = 'block';
-    setTimeout(() => { ok.style.display = 'none'; }, 3000);
+    ok.classList.add('show');
+    setTimeout(() => { ok.classList.remove('show'); }, 3000);
     loadMessages();
   }
 }
@@ -679,10 +762,45 @@ async function init() {
       loadHomestay(), loadGuide(), loadAttractions(), loadRoutes(),
       loadFood(), loadProducts(), loadTips(), loadMessages()
     ]);
+    // After content loaded, observe for scroll animations
+    setupScrollAnimations();
   } catch (err) {
     console.error('Page init error:', err);
   }
 }
+
+// ====== Scroll animations ======
+function setupScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => observer.observe(el));
+}
+
+// Scroll progress bar
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  const bar = document.getElementById('progressBar');
+  if (bar) bar.style.width = Math.min(progress, 100) + '%';
+});
+
+// Hero parallax
+window.addEventListener('scroll', () => {
+  const heroBg = document.querySelector('.hero-bg img');
+  if (heroBg) {
+    const scroll = window.scrollY;
+    if (scroll < 600) {
+      heroBg.style.transform = `translateY(${scroll * 0.3}px) scale(${1 + scroll * 0.0005})`;
+    }
+  }
+});
 
 document.addEventListener('DOMContentLoaded', init);
 
