@@ -685,6 +685,13 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Auto-refresh when user switches back to this tab (after editing in admin)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    init();
+  }
+});
 </script>
 </body>
 </html>

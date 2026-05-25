@@ -528,7 +528,10 @@ async function saveTips() {
 // ======== Tab: 留言管理 ========
 async function loadMessages() {
   const d = await fetchJSON('/api/admin/messages');
-  let html = `<h1>📝 留言管理 <span style="font-size:14px;color:var(--muted);font-weight:400;">（共 ${d.length} 条）</span></h1>`;
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+    <h1 style="margin-bottom:0;">📝 留言管理 <span style="font-size:14px;color:var(--muted);font-weight:400;">（共 ${d.length} 条）</span></h1>
+    <button class="btn btn-outline btn-sm" onclick="loadMessages()">🔄 刷新</button>
+  </div>`;
   if (d.length === 0) {
     html += `<p style="color:var(--muted);padding:24px 0;">暂无留言</p>`;
   } else {
@@ -565,8 +568,20 @@ const TAB_LOADERS = {
   messages: loadMessages
 };
 
+let currentTab = 'homestay';
+let msgPollTimer = null;
+
 function loadTab(name) {
+  // Clear old poll timer
+  if (msgPollTimer) { clearInterval(msgPollTimer); msgPollTimer = null; }
+  currentTab = name;
   if (TAB_LOADERS[name]) TAB_LOADERS[name]();
+  // Auto-poll messages every 10s when on that tab
+  if (name === 'messages') {
+    msgPollTimer = setInterval(() => {
+      if (currentTab === 'messages') loadMessages();
+    }, 10000);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => loadTab('homestay'));
