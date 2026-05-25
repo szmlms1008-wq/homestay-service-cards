@@ -437,62 +437,106 @@ async function loadProducts() {
   const d = await fetchJSON('/api/admin/products');
   let html = `<h1>🛍️ 民宿好物</h1><div class="dyn-list" id="prodList">`;
   d.items.forEach((p, i) => {
-    html += `<div class="dyn-item">
+    html += `<div class="dyn-item" data-prod-idx="${i}">
       <div class="dyn-header">
         <strong>商品 ${i+1}</strong>
-        <div class="toggle-row">
-          <span style="font-size:12px;color:var(--muted);">上架</span>
-          <div class="toggle ${p.active?'on':''}" data-idx="${i}" data-field="active" onclick="this.classList.toggle('on')"></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="toggle-row">
+            <span style="font-size:12px;color:var(--muted);">上架</span>
+            <div class="toggle ${p.active?'on':''}" data-field="active" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="this.closest('.dyn-item').remove()">🗑 删除</button>
         </div>
       </div>
-      <div class="fg"><label>名称</label><input type="text" value="${esc(p.name)}" data-idx="${i}" data-field="name"></div>
+      <div class="fg"><label>名称</label><input type="text" value="${esc(p.name)}" data-field="name"></div>
       <div class="fg-row">
-        <div class="fg"><label>价格（元）</label><input type="number" value="${p.price}" data-idx="${i}" data-field="price"></div>
+        <div class="fg"><label>价格（元）</label><input type="number" value="${p.price}" data-field="price"></div>
       </div>
-      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(p.description)}</textarea></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(p.description)}</textarea></div>
       <div class="fg-row">
-        <div class="fg"><label>微信号</label><input type="text" value="${esc(p.wechat)}" data-idx="${i}" data-field="wechat"></div>
-        <div class="fg"><label>电话</label><input type="text" value="${esc(p.phone)}" data-idx="${i}" data-field="phone"></div>
+        <div class="fg"><label>微信号</label><input type="text" value="${esc(p.wechat)}" data-field="wechat"></div>
+        <div class="fg"><label>电话</label><input type="text" value="${esc(p.phone)}" data-field="phone"></div>
       </div>
       <div class="fg"><label>商品图片 <span class="hint">（推荐 600×600px）</span></label>
-        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'prod_img_','preview_prod_img_')">
-        <input type="hidden" id="prod_img_${i}" value="${esc(p.image||'')}">
-        <img class="img-preview" id="preview_prod_img_${i}" src="${p.image||''}" style="${p.image?'':'display:none'}">
+        <input type="file" accept="image/*" onchange="productImageUpload(this)">
+        <input type="hidden" data-field="image" value="${esc(p.image||'')}">
+        <img class="img-preview" src="${p.image||''}" style="${p.image?'':'display:none'}">
       </div>
     </div>`;
   });
-  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveProducts()">💾 保存</button>`;
+  html += `</div>
+    <div style="margin-top:14px;display:flex;gap:12px;">
+      <button class="btn btn-primary" onclick="saveProducts()">💾 保存全部</button>
+      <button class="btn btn-outline" onclick="addProductRow()">➕ 添加商品</button>
+    </div>`;
   document.getElementById('mainContent').innerHTML = html;
 }
 
 async function saveProducts() {
-  const list = document.getElementById('prodList');
-  const inputs = list.querySelectorAll('[data-idx]');
-  const map = {};
-  inputs.forEach(el => {
-    if (el.type === 'file') return;
-    const idx = el.dataset.idx;
-    if (!map[idx]) map[idx] = {};
-    if (el.type === 'number') map[idx][el.dataset.field] = Number(el.value);
-    else map[idx][el.dataset.field] = el.value;
-  });
-  // Checkbox active state from toggle
-  list.querySelectorAll('.toggle').forEach(t => {
-    const idx = t.dataset.idx;
-    if (map[idx]) map[idx].active = t.classList.contains('on');
-  });
-  // Merge image values
-  list.querySelectorAll('input[type="hidden"]').forEach(el => {
-    const idxMatch = el.id.match(/\d+$/);
-    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
+  const container = document.getElementById('prodList');
+  const items = [];
+  container.querySelectorAll('.dyn-item').forEach(el => {
+    const item = {};
+    el.querySelectorAll('[data-field]').forEach(input => {
+      if (input.type === 'file') return;
+      const field = input.dataset.field;
+      if (input.type === 'number') item[field] = Number(input.value);
+      else item[field] = input.value;
+    });
+    // toggle active
+    const toggle = el.querySelector('.toggle');
+    item.active = toggle ? toggle.classList.contains('on') : true;
+    items.push(item);
   });
   await fetch(API + '/api/admin/products', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items: Object.values(map) })
+    body: JSON.stringify({ items })
   });
   toast('保存成功');
   loadProducts();
+}
+
+function addProductRow() {
+  const container = document.getElementById('prodList');
+  const count = container.querySelectorAll('.dyn-item').length;
+  const div = document.createElement('div');
+  div.className = 'dyn-item';
+  div.innerHTML = `
+    <div class="dyn-header">
+      <strong>新商品 ${count + 1}</strong>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="toggle-row">
+          <span style="font-size:12px;color:var(--muted);">上架</span>
+          <div class="toggle on" data-field="active" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.dyn-item').remove()">🗑 删除</button>
+      </div>
+    </div>
+    <div class="fg"><label>名称</label><input type="text" value="" data-field="name"></div>
+    <div class="fg-row"><div class="fg"><label>价格（元）</label><input type="number" value="0" data-field="price"></div></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>微信号</label><input type="text" value="homestay_shop" data-field="wechat"></div>
+      <div class="fg"><label>电话</label><input type="text" value="13800001234" data-field="phone"></div>
+    </div>
+    <div class="fg"><label>商品图片 <span class="hint">（推荐 600×600px）</span></label>
+      <input type="file" accept="image/*" onchange="productImageUpload(this)">
+      <input type="hidden" data-field="image" value="">
+      <img class="img-preview" src="" style="display:none">
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+async function productImageUpload(input) {
+  if (!input.files[0]) return;
+  const url = await uploadImage(input.files[0]);
+  if (!url) return;
+  const item = input.closest('.dyn-item');
+  item.querySelector('[data-field="image"]').value = url;
+  const preview = item.querySelector('.img-preview');
+  if (preview) { preview.src = url; preview.style.display = 'block'; }
 }
 
 // ======== Tab: 温馨提示 ========
