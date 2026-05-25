@@ -8,8 +8,27 @@ const PORT = 3001;
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
+const ADMIN_USER = 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
 const VALID_MODULES = ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips'];
 
+// HTTP Basic Auth middleware
+function basicAuth(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="Homestay Admin"');
+    return res.status(401).send('需要登录');
+  }
+  const [user, pass] = Buffer.from(auth.slice(6), 'base64').toString().split(':');
+  if (user === ADMIN_USER && pass === ADMIN_PASSWORD) {
+    return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="Homestay Admin"');
+  res.status(401).send('用户名或密码错误');
+}
+
+app.use(basicAuth);
 app.use(express.json());
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, 'admin')));
@@ -78,5 +97,7 @@ app.delete('/api/admin/messages/:id', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  const isDefault = ADMIN_PASSWORD === 'admin123';
   console.log(`⚙️  民宿后台管理: http://localhost:${PORT}`);
+  console.log(`   账号: admin  密码: ${ADMIN_PASSWORD}${isDefault ? ' (默认密码，请通过 ADMIN_PASSWORD 环境变量修改)' : ''}`);
 });

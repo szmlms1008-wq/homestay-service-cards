@@ -4,6 +4,7 @@
   "description": "民宿客人服务卡片系统",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"node admin-server.js\"",
+    "dev:secure": "concurrently \"node server.js\" \"ADMIN_PASSWORD=mysecret123 node admin-server.js\"",
     "start:guest": "node server.js",
     "start:admin": "node admin-server.js"
   },
