@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>山居小筑 - 服务卡片</title>
+<style>
+:root {
+  --canvas: #fefaf6;
+  --surface-card: #fffbf7;
+  --surface-soft: #faf3eb;
+  --primary: #d4896a;
+  --primary-active: #b86d4f;
+  --ink: #2c2420;
+  --body: #5c4f48;
+  --muted: #8c7b72;
+  --hairline: #e8ddd4;
+  --accent-green: #7da891;
+  --rounded-sm: 8px;
+  --rounded-md: 14px;
+  --rounded-lg: 20px;
+  --rounded-xl: 32px;
+  --rounded-full: 9999px;
+  --shadow-card: 0 2px 6px rgba(44,36,32,0.04), 0 4px 8px rgba(44,36,32,0.06);
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+  --font-sans: -apple-system, "PingFang SC", system-ui, "Microsoft YaHei", sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--canvas);
+  color: var(--body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Section alternation */
+section { padding: 56px 0; }
+section:nth-of-type(odd) { background: var(--canvas); }
+section:nth-of-type(even) { background: var(--surface-soft); }
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+/* Shared components */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  background: var(--primary); color: #fff;
+  font-size: 14px; font-weight: 500; font-family: var(--font-sans);
+  padding: 10px 22px; border-radius: var(--rounded-full);
+  border: none; cursor: pointer; text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-primary:active { background: var(--primary-active); transform: scale(0.97); }
+
+.card {
+  background: var(--surface-card);
+  border-radius: var(--rounded-md);
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  transition: box-shadow 0.2s;
+}
+.card:hover { box-shadow: var(--shadow-card); }
+
+.pill-tag {
+  display: inline-block;
+  font-size: 13px; font-weight: 500;
+  color: var(--primary);
+  padding: 4px 14px;
+  border: 1px solid var(--primary);
+  border-radius: var(--rounded-full);
+  background: transparent;
+}
+
+.step-number {
+  font-family: var(--font-serif);
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--hairline);
+  line-height: 1;
+  min-width: 52px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Horizontal scroll container */
+.scroll-x {
+  display: flex; gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+.scroll-x > * { scroll-snap-align: start; }
+
+/* Marquee */
+.marquee {
+  overflow: hidden;
+  background: var(--surface-soft);
+  border-radius: var(--rounded-sm);
+  padding: 14px 16px;
+  border: 1px solid var(--hairline);
+}
+.marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 35s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Product grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.product-card {
+  background: var(--surface-card);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  transition: box-shadow 0.2s;
+}
+.product-card:hover { box-shadow: var(--shadow-card); }
+
+.product-img {
+  width: 100%; height: 150px;
+  background: linear-gradient(135deg, #f5ebe0, #efe0d0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  overflow: hidden;
+}
+.product-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.product-body { padding: 14px; }
+.product-body h3 { font-size: 14px; font-weight: 600; color: var(--ink); }
+.product-body .desc { font-size: 12px; color: var(--muted); margin: 4px 0 10px; line-height: 1.5; }
+.product-body .bottom { display: flex; align-items: center; justify-content: space-between; }
+.product-body .price { font-size: 17px; font-weight: 700; color: var(--primary); }
+
+/* Map button */
+.btn-map {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13px; font-weight: 500; color: var(--primary);
+  padding: 6px 16px;
+  border: 1px solid var(--primary);
+  border-radius: var(--rounded-full);
+  background: transparent; cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-map:active { background: var(--primary); color: #fff; }
+
+/* Tips list */
+.tip-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.tip-row:last-child { border-bottom: none; }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+  padding: 28px 24px 32px;
+  width: 100%; max-width: 420px;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-sheet h3 {
+  font-family: var(--font-serif); font-size: 18px; color: var(--ink); margin-bottom: 20px; text-align: center;
+}
+.modal-sheet .btn { width: 100%; margin-bottom: 10px; padding: 14px; border-radius: var(--rounded-full); border: none; font-size: 15px; font-weight: 500; font-family: var(--font-sans); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.modal-sheet .btn-wechat { background: #07c160; color: #fff; }
+.modal-sheet .btn-wechat:active { background: #06ad56; }
+.modal-sheet .btn-call { background: var(--primary); color: #fff; }
+.modal-sheet .btn-call:active { background: var(--primary-active); }
+.modal-sheet .btn-cancel {
+  width: 100%; margin-top: 6px; padding: 12px; background: none; border: 1px solid var(--hairline); border-radius: var(--rounded-full); color: var(--muted); font-size: 14px; cursor: pointer; font-family: var(--font-sans);
+}
+
+/* Hero */
+.hero-wrap {
+  position: relative;
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, #f0e0d0 0%, #e2cfb8 30%, #d4b896 60%, #c9a882 100%);
+}
+.hero-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(62,40,20,0.15) 0%, rgba(62,40,20,0.35) 100%);
+}
+.hero-content {
+  position: relative; z-index: 1;
+  text-align: center; padding: 48px 24px;
+  color: #fff;
+}
+.hero-content h1 {
+  font-family: var(--font-serif);
+  font-size: 30px; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.hero-content .desc {
+  font-size: 15px; margin-top: 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  max-width: 360px; margin-left: auto; margin-right: auto;
+  opacity: 0.92;
+}
+.hero-content .tags {
+  margin-top: 16px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+}
+.hero-content .pill-tag {
+  color: #fff; border-color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.15);
+}
+.hero-logo-placeholder {
+  font-size: 72px; margin-bottom: 12px;
+}
+
+/* Guide step images */
+.guide-thumb {
+  width: 100%;
+  max-width: 300px;
+  border-radius: var(--rounded-sm);
+  margin-top: 10px;
+}
+
+/* Attraction card in horizontal scroll */
+.attr-card {
+  min-width: 230px; max-width: 260px;
+  background: var(--surface-card);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  scroll-snap-align: start;
+}
+.attr-card .img-placeholder {
+  width: 100%; height: 140px;
+  background: var(--surface-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+}
+.attr-card .img-placeholder img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.attr-card .info { padding: 14px; }
+.attr-card .info h3 { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.attr-card .info p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* Guide map */
+.guide-map-wrap { margin-top: 24px; }
+.guide-map-wrap img {
+  width: 100%; border-radius: var(--rounded-md);
+  border: 1px solid var(--hairline);
+}
+
+/* Food card */
+.food-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--rounded-md);
+  background: linear-gradient(135deg, #fae3d0, #f5d5bb);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+/* Message board */
+.msg-input-row {
+  display: flex; gap: 10px;
+}
+.msg-input {
+  flex: 1;
+  padding: 12px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-full);
+  font-size: 14px; font-family: var(--font-sans);
+  outline: none; background: var(--surface-card);
+  transition: border-color 0.15s;
+}
+.msg-input:focus { border-color: var(--primary); }
+.msg-feedback {
+  color: var(--accent-green);
+  margin-top: 8px; font-size: 13px; font-weight: 500;
+  display: none;
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+  .product-img { height: 180px; }
+  .scroll-x { gap: 20px; }
+  .attr-card { min-width: 240px; }
+}
+@media (min-width: 1024px) {
+  .product-grid { grid-template-columns: repeat(4, 1fr); }
+  .attr-card { min-width: 250px; }
+  section { padding: 72px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== 1. Hero: 民宿简介 ====== -->
+<section id="homestay">
+  <div class="container">
+    <div class="hero-wrap">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-logo-placeholder" id="heroLogo">🏡</div>
+        <h1 id="heroName">山居小筑</h1>
+        <p class="desc" id="heroDesc">隐匿于青山绿水间的温暖居所</p>
+        <div class="tags" id="heroTags"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 2. 入住导引 ====== -->
+<section id="guide">
+  <div class="container">
+    <h2 class="section-title">🚪 入住导引</h2>
+    <p class="section-subtitle">跟着步骤走，轻松找到我们</p>
+    <div id="guideSteps" style="display:flex;flex-direction:column;gap:28px;"></div>
+  </div>
+</section>
+
+<!-- ====== 3. 景区攻略 ====== -->
+<section id="attractions">
+  <div class="container">
+    <h2 class="section-title">🗺️ 景区攻略</h2>
+    <p class="section-subtitle">周边好玩的地方推荐</p>
+    <div class="scroll-x" id="attrList"></div>
+    <div class="guide-map-wrap" id="guideMapWrap"></div>
+  </div>
+</section>
+
+<!-- ====== 4. 到达路线 ====== -->
+<section id="routes">
+  <div class="container">
+    <h2 class="section-title">📍 到达路线</h2>
+    <p class="section-subtitle">多种交通方式，轻松抵达</p>
+    <div style="display:flex;flex-direction:column;gap:16px;" id="routeList"></div>
+  </div>
+</section>
+
+<!-- ====== 5. 周边小吃 ====== -->
+<section id="food">
+  <div class="container">
+    <h2 class="section-title">🍜 周边小吃推荐</h2>
+    <p class="section-subtitle">本地人都爱吃的老店</p>
+    <div style="display:flex;flex-direction:column;gap:14px;" id="foodList"></div>
+  </div>
+</section>
+
+<!-- ====== 6. 民宿好物 ====== -->
+<section id="products">
+  <div class="container">
+    <h2 class="section-title">🛍️ 民宿好物</h2>
+    <p class="section-subtitle">把山居的味道带回家</p>
+    <div class="product-grid" id="productList"></div>
+  </div>
+</section>
+
+<!-- Buy Modal -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal-sheet">
+    <h3 id="modalTitle">购买商品</h3>
+    <button class="btn btn-wechat" id="modalWechat">📱 微信联系 — 复制微信号</button>
+    <button class="btn btn-call" id="modalCall">📞 电话联系 — 直接拨打</button>
+    <button class="btn-cancel" onclick="closeBuyModal()">取消</button>
+  </div>
+</div>
+
+<!-- ====== 7. 温馨提示 ====== -->
+<section id="tips">
+  <div class="container">
+    <h2 class="section-title">💡 温馨提示</h2>
+    <p class="section-subtitle">入住小贴士，让您住得更舒心</p>
+    <div class="card" id="tipsContent"></div>
+  </div>
+</section>
+
+<!-- ====== 8. 留言板 ====== -->
+<section id="messages">
+  <div class="container">
+    <h2 class="section-title">📝 留言板</h2>
+    <p class="section-subtitle">说说您的入住体验吧</p>
+    <div class="msg-input-row">
+      <input class="msg-input" id="msgInput" type="text" maxlength="200" placeholder="想说点什么...">
+      <button class="btn-primary" onclick="submitMsg()">发送</button>
+    </div>
+    <p class="msg-feedback" id="msgOk">收到您的反馈了 💚</p>
+    <div class="marquee" style="margin-top:20px;">
+      <div class="marquee-track" id="marqueeTrack"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+const API = '';
+
+async function getJSON(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(path + ' fetch failed');
+  return r.json();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// === 1. Homestay ===
+async function loadHomestay() {
+  const d = await getJSON('/api/homestay');
+  document.title = d.name + ' - 服务卡片';
+  if (d.coverImage) {
+    document.getElementById('heroBg').innerHTML = `<img src="${esc(d.coverImage)}" alt="">`;
+    document.getElementById('heroLogo').style.display = 'none';
+  } else {
+    document.getElementById('heroLogo').textContent = '🏡';
+  }
+  document.getElementById('heroName').textContent = d.name;
+  document.getElementById('heroDesc').textContent = d.description;
+  document.getElementById('heroTags').innerHTML = d.tags.map(t =>
+    `<span class="pill-tag">${esc(t)}</span>`
+  ).join('');
+}
+
+// === 2. Guide ===
+async function loadGuide() {
+  const d = await getJSON('/api/guide');
+  document.getElementById('guideSteps').innerHTML = d.steps.map((s, i) => `
+    <div style="display:flex;gap:18px;align-items:flex-start;">
+      <div class="step-number">${String(i+1).padStart(2,'0')}</div>
+      <div class="card" style="flex:1;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;">${esc(s.title)}</h3>
+        <p style="font-size:14px;color:var(--body);line-height:1.7;">${esc(s.description)}</p>
+        ${s.image ? `<img class="guide-thumb" src="${esc(s.image)}" alt="${esc(s.title)}">` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// === 3. Attractions ===
+async function loadAttractions() {
+  const d = await getJSON('/api/attractions');
+  document.getElementById('attrList').innerHTML = d.items.map(a => `
+    <div class="attr-card">
+      <div class="img-placeholder">
+        ${a.image ? `<img src="${esc(a.image)}" alt="${esc(a.name)}">` : '🏔️'}
+      </div>
+      <div class="info">
+        <h3>${esc(a.name)}</h3>
+        <p>${esc(a.description)}</p>
+      </div>
+    </div>
+  `).join('');
+  const mapWrap = document.getElementById('guideMapWrap');
+  if (d.guideMapImage) {
+    mapWrap.innerHTML = `<img src="${esc(d.guideMapImage)}" alt="景区导览图">`;
+  } else {
+    mapWrap.innerHTML = '';
+  }
+}
+
+// === 4. Routes ===
+async function loadRoutes() {
+  const d = await getJSON('/api/routes');
+  document.getElementById('routeList').innerHTML = d.items.map(r => `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:20px;">${esc(r.from.split(' ')[0] || r.from)}</span>
+        <span style="font-size:14px;font-weight:500;color:var(--ink);">${esc(r.from)}</span>
+        <span class="pill-tag" style="font-size:11px;padding:2px 10px;margin-left:auto;">${esc(r.method)}</span>
+      </div>
+      <p style="font-size:14px;color:var(--body);line-height:1.7;">${esc(r.description)}</p>
+    </div>
+  `).join('');
+}
+
+// === Map Navigation ===
+function openMapNav(lat, lng, name) {
+  const ua = navigator.userAgent || '';
+  const ios = /iphone|ipad|ipod/i.test(ua);
+  if (ios) {
+    window.location.href = `iosamap://path?sourceApplication=homestay&dlat=${lat}&dlng=${lng}&dname=${encodeURIComponent(name)}&dev=0&t=0`;
+    setTimeout(() => {
+      window.location.href = `https://uri.amap.com/navigation?to=${lng},${lat},${encodeURIComponent(name)}&mode=car&coordinate=gaode`;
+    }, 600);
+  } else {
+    window.location.href = `amapuri://route/plan/?dlat=${lat}&dlng=${lng}&dname=${encodeURIComponent(name)}&dev=0&t=0`;
+    setTimeout(() => {
+      window.location.href = `https://uri.amap.com/navigation?to=${lng},${lat},${encodeURIComponent(name)}&mode=car&coordinate=gaode`;
+    }, 600);
+  }
+}
+
+// === 5. Food ===
+async function loadFood() {
+  const d = await getJSON('/api/food');
+  const icons = ['🥘','🍜','🫘','🥩','🍲','🥟','🍛','🍢'];
+  document.getElementById('foodList').innerHTML = d.items.map((f, i) => `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div class="food-icon">${icons[i] || '🍽️'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+            <h3 style="font-size:16px;font-weight:600;color:var(--ink);">${esc(f.name)}</h3>
+            <span style="font-size:13px;color:var(--primary);font-weight:500;">🏷️ ${esc(f.dish)}</span>
+          </div>
+          <p style="font-size:13px;color:var(--body);margin:6px 0 10px;line-height:1.6;">${esc(f.description)}</p>
+          <button class="btn-map" onclick="openMapNav(${f.lat},${f.lng},'${esc(f.name)}')">📍 导航去这里</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// === 6. Products ===
+let productModalData = null;
+
+async function loadProducts() {
+  const d = await getJSON('/api/products');
+  document.getElementById('productList').innerHTML = d.items.map(p => `
+    <div class="product-card">
+      <div class="product-img">
+        ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">` : '🎁'}
+      </div>
+      <div class="product-body">
+        <h3>${esc(p.name)}</h3>
+        <p class="desc">${esc(p.description)}</p>
+        <div class="bottom">
+          <span class="price">¥${p.price}</span>
+          <button class="btn-primary" style="font-size:12px;padding:6px 16px;" onclick="openBuyModal('${esc(p.name)}','${esc(p.wechat)}','${esc(p.phone)}')">购买</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBuyModal(name, wechat, phone) {
+  productModalData = { name, wechat, phone };
+  document.getElementById('modalTitle').textContent = '购买 ' + name;
+  document.getElementById('modalWechat').onclick = () => {
+    navigator.clipboard.writeText(wechat).then(() => {
+      alert('微信号已复制：' + wechat + '\n\n请打开微信添加好友');
+    }).catch(() => {
+      alert('微信号：' + wechat + '\n\n请手动复制后添加微信');
+    });
+  };
+  document.getElementById('modalCall').onclick = () => {
+    window.location.href = 'tel:' + phone;
+  };
+  document.getElementById('buyModal').classList.add('open');
+}
+
+function closeBuyModal() {
+  document.getElementById('buyModal').classList.remove('open');
+}
+
+document.getElementById('buyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBuyModal();
+});
+
+// === 7. Tips ===
+async function loadTips() {
+  const d = await getJSON('/api/tips');
+  document.getElementById('tipsContent').innerHTML = `
+    <div class="tip-row">
+      <span style="font-size:24px;">📶</span>
+      <div><strong style="color:var(--ink);font-size:15px;">WiFi</strong><br><span style="font-size:13px;color:var(--body);">${esc(d.wifi)} — 密码：${esc(d.wifiPassword)}</span></div>
+    </div>
+    <div class="tip-row">
+      <span style="font-size:24px;">🕐</span>
+      <div><strong style="color:var(--ink);font-size:15px;">退房时间</strong><br><span style="font-size:13px;color:var(--body);">${esc(d.checkOutTime)}</span></div>
+    </div>
+    <div class="tip-row">
+      <span style="font-size:24px;">📞</span>
+      <div><strong style="color:var(--ink);font-size:15px;">紧急联系电话</strong><br><span style="font-size:13px;color:var(--body);">${esc(d.emergencyPhone)}</span></div>
+    </div>
+    <div style="margin-top:8px;padding-top:8px;">
+      <strong style="color:var(--ink);font-size:15px;display:block;margin-bottom:6px;">📋 入住须知</strong>
+      ${d.notices.map(n => `<p style="font-size:13px;color:var(--body);padding:5px 0;border-bottom:1px solid var(--hairline);">• ${esc(n)}</p>`).join('')}
+    </div>
+  `;
+}
+
+// === 8. Messages ===
+async function loadMessages() {
+  const d = await getJSON('/api/messages');
+  const texts = d.map(m => '"' + esc(m.content) + '"').join('  ·  ');
+  const track = document.getElementById('marqueeTrack');
+  track.textContent = texts + (texts ? '  ·  ' + texts : '');
+}
+
+async function submitMsg() {
+  const inp = document.getElementById('msgInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  const r = await fetch(API + '/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: text })
+  });
+  if (r.ok) {
+    inp.value = '';
+    const ok = document.getElementById('msgOk');
+    ok.style.display = 'block';
+    setTimeout(() => { ok.style.display = 'none'; }, 3000);
+    loadMessages();
+  }
+}
+
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') submitMsg();
+});
+
+// === Init ===
+async function init() {
+  try {
+    await Promise.all([
+      loadHomestay(), loadGuide(), loadAttractions(), loadRoutes(),
+      loadFood(), loadProducts(), loadTips(), loadMessages()
+    ]);
+  } catch (err) {
+    console.error('Page init error:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>民宿后台管理</title>
+<style>
+:root {
+  --canvas: #fefaf6; --surface-card: #fffbf7; --surface-soft: #faf3eb;
+  --primary: #d4896a; --primary-active: #b86d4f;
+  --ink: #2c2420; --body: #5c4f48; --muted: #8c7b72; --hairline: #e8ddd4;
+  --accent-green: #7da891; --error: #c64545;
+  --rounded-sm: 8px; --rounded-md: 12px; --rounded-full: 9999px;
+  --shadow: 0 1px 3px rgba(44,36,32,0.06), 0 2px 8px rgba(44,36,32,0.04);
+  --font-sans: -apple-system, "PingFang SC", system-ui, "Microsoft YaHei", sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-soft);
+  color: var(--body);
+  display: flex; min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px; background: var(--surface-card);
+  border-right: 1px solid var(--hairline);
+  padding: 20px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar h2 {
+  font-size: 16px; color: var(--ink);
+  padding: 0 20px 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar a {
+  display: block;
+  padding: 10px 20px; font-size: 14px;
+  color: var(--body); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer;
+  transition: all 0.12s;
+}
+.sidebar a:hover, .sidebar a.active {
+  color: var(--primary); background: var(--surface-soft);
+  border-left-color: var(--primary);
+}
+
+/* Main */
+.main {
+  flex: 1; padding: 28px; overflow-y: auto;
+  max-width: 900px;
+}
+.main h1 { font-size: 20px; color: var(--ink); margin-bottom: 22px; }
+
+/* Form */
+.fg { margin-bottom: 18px; }
+.fg label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.fg label .hint { font-weight: 400; color: var(--muted); font-size: 11px; }
+.fg input[type="text"],
+.fg input[type="number"],
+.fg input[type="url"],
+.fg textarea {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--hairline); border-radius: var(--rounded-sm);
+  font-size: 14px; font-family: var(--font-sans);
+  background: var(--surface-card); color: var(--ink);
+  transition: border-color 0.15s;
+}
+.fg textarea { min-height: 80px; resize: vertical; }
+.fg input:focus, .fg textarea:focus { outline: none; border-color: var(--primary); }
+
+.fg-row {
+  display: flex; gap: 12px;
+}
+.fg-row .fg { flex: 1; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 500; font-family: var(--font-sans);
+  padding: 10px 22px; border-radius: var(--rounded-full);
+  border: none; cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-active); }
+.btn-danger { background: var(--error); color: #fff; }
+.btn-danger:hover { background: #b33a3a; }
+.btn-outline {
+  background: transparent; border: 1px solid var(--hairline);
+  color: var(--body);
+}
+.btn-sm { padding: 5px 14px; font-size: 12px; }
+
+/* Dynamic list */
+.dyn-list { display: flex; flex-direction: column; gap: 14px; }
+.dyn-item {
+  background: var(--surface-soft);
+  padding: 16px; border-radius: var(--rounded-sm);
+  border: 1px solid var(--hairline);
+  position: relative;
+}
+.dyn-item .dyn-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dyn-item .dyn-header strong { font-size: 14px; color: var(--ink); }
+
+/* Image preview */
+.img-preview {
+  max-width: 200px; max-height: 130px;
+  border-radius: var(--rounded-sm); margin-top: 8px;
+  display: block; border: 1px solid var(--hairline);
+}
+
+/* Toggle */
+.toggle-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.toggle {
+  position: relative; width: 44px; height: 24px;
+  background: var(--hairline); border-radius: 12px;
+  cursor: pointer; transition: background 0.2s;
+}
+.toggle.on { background: var(--accent-green); }
+.toggle::after {
+  content: ''; position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  background: #fff; border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* Message list */
+.msg-list { max-height: 450px; overflow-y: auto; }
+.msg-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface-card); border-radius: var(--rounded-sm);
+  margin-bottom: 8px; border: 1px solid var(--hairline);
+  gap: 12px;
+}
+.msg-item .content { flex: 1; font-size: 14px; color: var(--ink); }
+.msg-item .time { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--ink); color: #fff;
+  padding: 12px 24px; border-radius: var(--rounded-full);
+  font-size: 14px; z-index: 9999;
+  display: none;
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.2s ease-out;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  body { flex-direction: column; }
+  .sidebar {
+    width: 100%; display: flex; overflow-x: auto;
+    padding: 8px 8px; flex-shrink: 0;
+  }
+  .sidebar h2 { display: none; }
+  .sidebar a {
+    flex-shrink: 0; border-left: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 14px; font-size: 13px; white-space: nowrap;
+  }
+  .sidebar a.active { border-left: none; border-bottom-color: var(--primary); }
+  .main { padding: 18px; }
+  .fg-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏡 民宿后台</h2>
+  <a data-tab="homestay" class="active" onclick="switchTab('homestay')">🏡 民宿简介</a>
+  <a data-tab="guide" onclick="switchTab('guide')">🚪 入住导引</a>
+  <a data-tab="attractions" onclick="switchTab('attractions')">🗺️ 景区攻略</a>
+  <a data-tab="routes" onclick="switchTab('routes')">📍 到达路线</a>
+  <a data-tab="food" onclick="switchTab('food')">🍜 周边小吃</a>
+  <a data-tab="products" onclick="switchTab('products')">🛍️ 民宿好物</a>
+  <a data-tab="tips" onclick="switchTab('tips')">💡 温馨提示</a>
+  <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
+</div>
+
+<div class="main" id="mainContent"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(el._tid);
+  el._tid = setTimeout(() => { el.style.display = 'none'; }, 2200);
+}
+
+async function fetchJSON(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(path + ' failed');
+  return r.json();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector(`[data-tab="${name}"]`);
+  if (link) link.classList.add('active');
+  loadTab(name);
+}
+
+async function uploadImage(file) {
+  const fd = new FormData();
+  fd.append('image', file);
+  const r = await fetch(API + '/api/admin/upload', { method: 'POST', body: fd });
+  if (!r.ok) { toast('上传失败'); return ''; }
+  const d = await r.json();
+  toast('图片上传成功');
+  return d.url;
+}
+
+// ======== Upload Helper ========
+function bindUpload(selector, hiddenId, previewId) {
+  const input = document.getElementById(selector);
+  if (!input) return;
+  input.addEventListener('change', async function() {
+    if (!this.files[0]) return;
+    const url = await uploadImage(this.files[0]);
+    if (!url) return;
+    document.getElementById(hiddenId).value = url;
+    const preview = document.getElementById(previewId);
+    if (preview) { preview.src = url; preview.style.display = 'block'; }
+  });
+}
+
+// ======== Tab: 民宿简介 ========
+async function loadHomestay() {
+  const d = await fetchJSON('/api/admin/homestay');
+  document.getElementById('mainContent').innerHTML = `
+    <h1>🏡 民宿简介</h1>
+    <div class="fg"><label>民宿名称</label><input type="text" id="f_name" value="${esc(d.name)}"></div>
+    <div class="fg"><label>Logo 图片 <span class="hint">（推荐 200×200px）</span></label>
+      <input type="file" accept="image/*" id="fu_logo">
+      <input type="hidden" id="f_logo" value="${esc(d.logo||'')}">
+      <img class="img-preview" id="preview_logo" src="${d.logo||''}" style="${d.logo?'':'display:none'}">
+    </div>
+    <div class="fg"><label>封面大图 <span class="hint">（推荐 750×500px）</span></label>
+      <input type="file" accept="image/*" id="fu_cover">
+      <input type="hidden" id="f_coverImage" value="${esc(d.coverImage||'')}">
+      <img class="img-preview" id="preview_coverImage" src="${d.coverImage||''}" style="${d.coverImage?'':'display:none'}">
+    </div>
+    <div class="fg"><label>一句话简介</label><textarea id="f_description">${esc(d.description)}</textarea></div>
+    <div class="fg"><label>特色标签（每行一个）</label><textarea id="f_tags">${d.tags.join('\n')}</textarea></div>
+    <button class="btn btn-primary" onclick="saveHomestay()">💾 保存</button>
+  `;
+  bindUpload('fu_logo', 'f_logo', 'preview_logo');
+  bindUpload('fu_cover', 'f_coverImage', 'preview_coverImage');
+}
+
+async function saveHomestay() {
+  const data = {
+    name: document.getElementById('f_name').value,
+    logo: document.getElementById('f_logo').value,
+    coverImage: document.getElementById('f_coverImage').value,
+    description: document.getElementById('f_description').value,
+    tags: document.getElementById('f_tags').value.split('\n').map(t => t.trim()).filter(t => t)
+  };
+  await fetch(API + '/api/admin/homestay', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  toast('保存成功');
+}
+
+// ======== Tab: 入住导引 ========
+async function loadGuide() {
+  const d = await fetchJSON('/api/admin/guide');
+  let html = `<h1>🚪 入住导引</h1><div class="dyn-list" id="guideList">`;
+  d.steps.forEach((s, i) => {
+    html += `<div class="dyn-item">
+      <div class="dyn-header"><strong>步骤 ${i+1}</strong></div>
+      <div class="fg"><label>标题</label><input type="text" value="${esc(s.title)}" data-idx="${i}" data-field="title"></div>
+      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(s.description)}</textarea></div>
+      <div class="fg"><label>步骤配图 <span class="hint">（推荐 600×400px）</span></label>
+        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'guide_img_','preview_guide_img_')">
+        <input type="hidden" id="guide_img_${i}" value="${esc(s.image||'')}">
+        <img class="img-preview" id="preview_guide_img_${i}" src="${s.image||''}" style="${s.image?'':'display:none'}">
+      </div>
+    </div>`;
+  });
+  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('guide','guideList',['title','description'],'steps')">💾 保存</button>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+async function dynamicUpload(input, idPrefix, previewPrefix) {
+  if (!input.files[0]) return;
+  const idx = input.dataset.uploadIdx;
+  const url = await uploadImage(input.files[0]);
+  if (!url) return;
+  document.getElementById(idPrefix + idx).value = url;
+  const preview = document.getElementById(previewPrefix + idx);
+  if (preview) { preview.src = url; preview.style.display = 'block'; }
+}
+
+async function saveDynamic(module, listId, fields, wrapperKey) {
+  const list = document.getElementById(listId);
+  const inputs = list.querySelectorAll('[data-idx]');
+  const map = {};
+  inputs.forEach(el => {
+    const idx = el.dataset.idx;
+    if (!map[idx]) map[idx] = {};
+    if (el.type === 'checkbox') map[idx][el.dataset.field] = el.checked;
+    else if (el.type === 'number') map[idx][el.dataset.field] = Number(el.value);
+    else map[idx][el.dataset.field] = el.value;
+  });
+  // Merge hidden image values
+  list.querySelectorAll('input[type="hidden"]').forEach(el => {
+    const idxMatch = el.id.match(/\d+$/);
+    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
+  });
+  await fetch(API + '/api/admin/' + module, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [wrapperKey]: Object.values(map) })
+  });
+  toast('保存成功');
+  loadTab(module);
+}
+
+// ======== Tab: 景区攻略 ========
+async function loadAttractions() {
+  const d = await fetchJSON('/api/admin/attractions');
+  let html = `<h1>🗺️ 景区攻略</h1><div class="dyn-list" id="attList">`;
+  d.items.forEach((a, i) => {
+    html += `<div class="dyn-item">
+      <div class="dyn-header"><strong>景点 ${i+1}</strong></div>
+      <div class="fg"><label>名称</label><input type="text" value="${esc(a.name)}" data-idx="${i}" data-field="name"></div>
+      <div class="fg"><label>简介</label><textarea data-idx="${i}" data-field="description">${esc(a.description)}</textarea></div>
+      <div class="fg"><label>景点图片 <span class="hint">（推荐 600×400px）</span></label>
+        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'att_img_','preview_att_img_')">
+        <input type="hidden" id="att_img_${i}" value="${esc(a.image||'')}">
+        <img class="img-preview" id="preview_att_img_${i}" src="${a.image||''}" style="${a.image?'':'display:none'}">
+      </div>
+    </div>`;
+  });
+  html += `</div>
+    <div class="fg"><label>景区导览图 <span class="hint">（推荐 750×500px）</span></label>
+      <input type="file" accept="image/*" id="fu_guidemap">
+      <input type="hidden" id="f_guideMapImage" value="${esc(d.guideMapImage||'')}">
+      <img class="img-preview" id="preview_guideMapImage" src="${d.guideMapImage||''}" style="${d.guideMapImage?'':'display:none'}">
+    </div>
+    <button class="btn btn-primary" onclick="saveAttractions()">💾 保存</button>
+  `;
+  document.getElementById('mainContent').innerHTML = html;
+  bindUpload('fu_guidemap', 'f_guideMapImage', 'preview_guideMapImage');
+}
+
+async function saveAttractions() {
+  const list = document.getElementById('attList');
+  const inputs = list.querySelectorAll('[data-idx]');
+  const map = {};
+  inputs.forEach(el => {
+    const idx = el.dataset.idx;
+    if (!map[idx]) map[idx] = {};
+    map[idx][el.dataset.field] = el.value;
+  });
+  list.querySelectorAll('input[type="hidden"]').forEach(el => {
+    const idxMatch = el.id.match(/\d+$/);
+    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
+  });
+  await fetch(API + '/api/admin/attractions', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: Object.values(map), guideMapImage: document.getElementById('f_guideMapImage').value })
+  });
+  toast('保存成功');
+  loadAttractions();
+}
+
+// ======== Tab: 到达路线 ========
+async function loadRoutes() {
+  const d = await fetchJSON('/api/admin/routes');
+  let html = `<h1>📍 到达路线</h1><div class="dyn-list" id="routeList">`;
+  d.items.forEach((r, i) => {
+    html += `<div class="dyn-item">
+      <div class="dyn-header"><strong>路线 ${i+1}</strong></div>
+      <div class="fg"><label>出发地（含emoji）</label><input type="text" value="${esc(r.from)}" data-idx="${i}" data-field="from"></div>
+      <div class="fg"><label>交通方式</label><input type="text" value="${esc(r.method)}" data-idx="${i}" data-field="method"></div>
+      <div class="fg"><label>路线说明</label><textarea data-idx="${i}" data-field="description">${esc(r.description)}</textarea></div>
+    </div>`;
+  });
+  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('routes','routeList',['from','method','description'],'items')">💾 保存</button>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======== Tab: 周边小吃 ========
+async function loadFood() {
+  const d = await fetchJSON('/api/admin/food');
+  let html = `<h1>🍜 周边小吃</h1><div class="dyn-list" id="foodList">`;
+  d.items.forEach((f, i) => {
+    html += `<div class="dyn-item">
+      <div class="dyn-header"><strong>小吃 ${i+1}</strong></div>
+      <div class="fg"><label>店名</label><input type="text" value="${esc(f.name)}" data-idx="${i}" data-field="name"></div>
+      <div class="fg"><label>推荐菜</label><input type="text" value="${esc(f.dish)}" data-idx="${i}" data-field="dish"></div>
+      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(f.description)}</textarea></div>
+      <div class="fg-row">
+        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${f.lat}" data-idx="${i}" data-field="lat"></div>
+        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${f.lng}" data-idx="${i}" data-field="lng"></div>
+      </div>
+    </div>`;
+  });
+  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('food','foodList',['name','dish','description','lat','lng'],'items')">💾 保存</button>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======== Tab: 民宿好物 ========
+async function loadProducts() {
+  const d = await fetchJSON('/api/admin/products');
+  let html = `<h1>🛍️ 民宿好物</h1><div class="dyn-list" id="prodList">`;
+  d.items.forEach((p, i) => {
+    html += `<div class="dyn-item">
+      <div class="dyn-header">
+        <strong>商品 ${i+1}</strong>
+        <div class="toggle-row">
+          <span style="font-size:12px;color:var(--muted);">上架</span>
+          <div class="toggle ${p.active?'on':''}" data-idx="${i}" data-field="active" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="fg"><label>名称</label><input type="text" value="${esc(p.name)}" data-idx="${i}" data-field="name"></div>
+      <div class="fg-row">
+        <div class="fg"><label>价格（元）</label><input type="number" value="${p.price}" data-idx="${i}" data-field="price"></div>
+      </div>
+      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(p.description)}</textarea></div>
+      <div class="fg-row">
+        <div class="fg"><label>微信号</label><input type="text" value="${esc(p.wechat)}" data-idx="${i}" data-field="wechat"></div>
+        <div class="fg"><label>电话</label><input type="text" value="${esc(p.phone)}" data-idx="${i}" data-field="phone"></div>
+      </div>
+      <div class="fg"><label>商品图片 <span class="hint">（推荐 600×600px）</span></label>
+        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'prod_img_','preview_prod_img_')">
+        <input type="hidden" id="prod_img_${i}" value="${esc(p.image||'')}">
+        <img class="img-preview" id="preview_prod_img_${i}" src="${p.image||''}" style="${p.image?'':'display:none'}">
+      </div>
+    </div>`;
+  });
+  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveProducts()">💾 保存</button>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+async function saveProducts() {
+  const list = document.getElementById('prodList');
+  const inputs = list.querySelectorAll('[data-idx]');
+  const map = {};
+  inputs.forEach(el => {
+    if (el.type === 'file') return;
+    const idx = el.dataset.idx;
+    if (!map[idx]) map[idx] = {};
+    if (el.type === 'number') map[idx][el.dataset.field] = Number(el.value);
+    else map[idx][el.dataset.field] = el.value;
+  });
+  // Checkbox active state from toggle
+  list.querySelectorAll('.toggle').forEach(t => {
+    const idx = t.dataset.idx;
+    if (map[idx]) map[idx].active = t.classList.contains('on');
+  });
+  // Merge image values
+  list.querySelectorAll('input[type="hidden"]').forEach(el => {
+    const idxMatch = el.id.match(/\d+$/);
+    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
+  });
+  await fetch(API + '/api/admin/products', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: Object.values(map) })
+  });
+  toast('保存成功');
+  loadProducts();
+}
+
+// ======== Tab: 温馨提示 ========
+async function loadTips() {
+  const d = await fetchJSON('/api/admin/tips');
+  document.getElementById('mainContent').innerHTML = `
+    <h1>💡 温馨提示</h1>
+    <div class="fg"><label>WiFi 名称</label><input type="text" id="f_wifi" value="${esc(d.wifi)}"></div>
+    <div class="fg"><label>WiFi 密码</label><input type="text" id="f_wifiPassword" value="${esc(d.wifiPassword)}"></div>
+    <div class="fg"><label>退房时间</label><input type="text" id="f_checkOutTime" value="${esc(d.checkOutTime)}"></div>
+    <div class="fg"><label>紧急联系电话</label><input type="text" id="f_emergencyPhone" value="${esc(d.emergencyPhone)}"></div>
+    <div class="fg"><label>入住须知（每行一条）</label><textarea id="f_notices">${d.notices.join('\n')}</textarea></div>
+    <button class="btn btn-primary" onclick="saveTips()">💾 保存</button>
+  `;
+}
+
+async function saveTips() {
+  const data = {
+    wifi: document.getElementById('f_wifi').value,
+    wifiPassword: document.getElementById('f_wifiPassword').value,
+    checkOutTime: document.getElementById('f_checkOutTime').value,
+    emergencyPhone: document.getElementById('f_emergencyPhone').value,
+    notices: document.getElementById('f_notices').value.split('\n').map(t => t.trim()).filter(t => t)
+  };
+  await fetch(API + '/api/admin/tips', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  toast('保存成功');
+}
+
+// ======== Tab: 留言管理 ========
+async function loadMessages() {
+  const d = await fetchJSON('/api/admin/messages');
+  let html = `<h1>📝 留言管理 <span style="font-size:14px;color:var(--muted);font-weight:400;">（共 ${d.length} 条）</span></h1>`;
+  if (d.length === 0) {
+    html += `<p style="color:var(--muted);padding:24px 0;">暂无留言</p>`;
+  } else {
+    html += `<div class="msg-list">`;
+    [...d].reverse().forEach(m => {
+      const dt = new Date(m.createdAt);
+      const ds = dt.toLocaleString('zh-CN', { hour12: false });
+      html += `<div class="msg-item">
+        <span class="content">${esc(m.content)}</span>
+        <span class="time">${ds}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteMsg('${m.id}')">删除</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+async function deleteMsg(id) {
+  await fetch(API + '/api/admin/messages/' + id, { method: 'DELETE' });
+  toast('留言已删除');
+  loadMessages();
+}
+
+// ======== Router ========
+const TAB_LOADERS = {
+  homestay: loadHomestay,
+  guide: loadGuide,
+  attractions: loadAttractions,
+  routes: loadRoutes,
+  food: loadFood,
+  products: loadProducts,
+  tips: loadTips,
+  messages: loadMessages
+};
+
+function loadTab(name) {
+  if (TAB_LOADERS[name]) TAB_LOADERS[name]();
+}
+
+document.addEventListener('DOMContentLoaded', () => loadTab('homestay'));
+</script>
+</body>
+</html>
