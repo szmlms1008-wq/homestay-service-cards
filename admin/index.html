@@ -291,74 +291,112 @@ async function saveHomestay() {
   toast('保存成功');
 }
 
+// ======== Generic dynamic list helpers ========
+async function itemImageUpload(input) {
+  if (!input.files[0]) return;
+  const url = await uploadImage(input.files[0]);
+  if (!url) return;
+  const item = input.closest('.dyn-item');
+  item.querySelector('[data-field="image"]').value = url;
+  const preview = item.querySelector('.img-preview');
+  if (preview) { preview.src = url; preview.style.display = 'block'; }
+}
+
+function collectItems(listId) {
+  const container = document.getElementById(listId);
+  const items = [];
+  container.querySelectorAll('.dyn-item').forEach(el => {
+    const item = {};
+    el.querySelectorAll('[data-field]').forEach(input => {
+      if (input.type === 'file') return;
+      const field = input.dataset.field;
+      if (input.type === 'checkbox') item[field] = input.checked;
+      else if (input.type === 'number') item[field] = Number(input.value);
+      else item[field] = input.value;
+    });
+    const toggle = el.querySelector('.toggle');
+    if (toggle) item.active = toggle.classList.contains('on');
+    items.push(item);
+  });
+  return items;
+}
+
+function makeAddBtn(listId, templateFn) {
+  const container = document.getElementById(listId);
+  const count = container.querySelectorAll('.dyn-item').length;
+  const div = document.createElement('div');
+  div.className = 'dyn-item';
+  div.innerHTML = templateFn(count);
+  container.appendChild(div);
+}
+
+function delBtn() { return '<button class="btn btn-danger btn-sm" onclick="this.closest(\'.dyn-item\').remove()">🗑 删除</button>'; }
+
+function saveBtnRow(listId, module, wrapperKey, afterSave) {
+  return `<div style="margin-top:14px;display:flex;gap:12px;">
+    <button class="btn btn-primary" onclick="
+      const items = collectItems('${listId}');
+      fetch(API + '/api/admin/${module}', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({${wrapperKey}:items})}).then(()=>{toast('保存成功');${afterSave || 'loadTab(\''+module+'\')'};});
+    ">💾 保存</button>
+    <button class="btn btn-outline" onclick="makeAddBtn('${listId}', ${module}AddTemplate)">➕ 添加</button>
+  </div>`;
+}
+
 // ======== Tab: 入住导引 ========
+function guideAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新步骤 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>标题</label><input type="text" value="" data-field="title"></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
+    <div class="fg"><label>步骤配图 <span class="hint">（推荐 600×400px）</span></label>
+      <input type="file" accept="image/*" onchange="itemImageUpload(this)">
+      <input type="hidden" data-field="image" value="">
+      <img class="img-preview" src="" style="display:none">
+    </div>`;
+}
+
 async function loadGuide() {
   const d = await fetchJSON('/api/admin/guide');
   let html = `<h1>🚪 入住导引</h1><div class="dyn-list" id="guideList">`;
   d.steps.forEach((s, i) => {
     html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>步骤 ${i+1}</strong></div>
-      <div class="fg"><label>标题</label><input type="text" value="${esc(s.title)}" data-idx="${i}" data-field="title"></div>
-      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(s.description)}</textarea></div>
+      <div class="dyn-header"><strong>步骤 ${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>标题</label><input type="text" value="${esc(s.title)}" data-field="title"></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(s.description)}</textarea></div>
       <div class="fg"><label>步骤配图 <span class="hint">（推荐 600×400px）</span></label>
-        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'guide_img_','preview_guide_img_')">
-        <input type="hidden" id="guide_img_${i}" value="${esc(s.image||'')}">
-        <img class="img-preview" id="preview_guide_img_${i}" src="${s.image||''}" style="${s.image?'':'display:none'}">
+        <input type="file" accept="image/*" onchange="itemImageUpload(this)">
+        <input type="hidden" data-field="image" value="${esc(s.image||'')}">
+        <img class="img-preview" src="${s.image||''}" style="${s.image?'':'display:none'}">
       </div>
     </div>`;
   });
-  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('guide','guideList',['title','description'],'steps')">💾 保存</button>`;
+  html += `</div>${saveBtnRow('guideList','guide','steps')}`;
   document.getElementById('mainContent').innerHTML = html;
 }
 
-async function dynamicUpload(input, idPrefix, previewPrefix) {
-  if (!input.files[0]) return;
-  const idx = input.dataset.uploadIdx;
-  const url = await uploadImage(input.files[0]);
-  if (!url) return;
-  document.getElementById(idPrefix + idx).value = url;
-  const preview = document.getElementById(previewPrefix + idx);
-  if (preview) { preview.src = url; preview.style.display = 'block'; }
-}
-
-async function saveDynamic(module, listId, fields, wrapperKey) {
-  const list = document.getElementById(listId);
-  const inputs = list.querySelectorAll('[data-idx]');
-  const map = {};
-  inputs.forEach(el => {
-    const idx = el.dataset.idx;
-    if (!map[idx]) map[idx] = {};
-    if (el.type === 'checkbox') map[idx][el.dataset.field] = el.checked;
-    else if (el.type === 'number') map[idx][el.dataset.field] = Number(el.value);
-    else map[idx][el.dataset.field] = el.value;
-  });
-  // Merge hidden image values
-  list.querySelectorAll('input[type="hidden"]').forEach(el => {
-    const idxMatch = el.id.match(/\d+$/);
-    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
-  });
-  await fetch(API + '/api/admin/' + module, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ [wrapperKey]: Object.values(map) })
-  });
-  toast('保存成功');
-  loadTab(module);
-}
-
 // ======== Tab: 景区攻略 ========
+function attrAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新景点 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>名称</label><input type="text" value="" data-field="name"></div>
+    <div class="fg"><label>简介</label><textarea data-field="description"></textarea></div>
+    <div class="fg"><label>景点图片 <span class="hint">（推荐 600×400px）</span></label>
+      <input type="file" accept="image/*" onchange="itemImageUpload(this)">
+      <input type="hidden" data-field="image" value="">
+      <img class="img-preview" src="" style="display:none">
+    </div>`;
+}
+
 async function loadAttractions() {
   const d = await fetchJSON('/api/admin/attractions');
   let html = `<h1>🗺️ 景区攻略</h1><div class="dyn-list" id="attList">`;
   d.items.forEach((a, i) => {
     html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>景点 ${i+1}</strong></div>
-      <div class="fg"><label>名称</label><input type="text" value="${esc(a.name)}" data-idx="${i}" data-field="name"></div>
-      <div class="fg"><label>简介</label><textarea data-idx="${i}" data-field="description">${esc(a.description)}</textarea></div>
+      <div class="dyn-header"><strong>景点 ${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>名称</label><input type="text" value="${esc(a.name)}" data-field="name"></div>
+      <div class="fg"><label>简介</label><textarea data-field="description">${esc(a.description)}</textarea></div>
       <div class="fg"><label>景点图片 <span class="hint">（推荐 600×400px）</span></label>
-        <input type="file" accept="image/*" data-upload-idx="${i}" onchange="dynamicUpload(this,'att_img_','preview_att_img_')">
-        <input type="hidden" id="att_img_${i}" value="${esc(a.image||'')}">
-        <img class="img-preview" id="preview_att_img_${i}" src="${a.image||''}" style="${a.image?'':'display:none'}">
+        <input type="file" accept="image/*" onchange="itemImageUpload(this)">
+        <input type="hidden" data-field="image" value="${esc(a.image||'')}">
+        <img class="img-preview" src="${a.image||''}" style="${a.image?'':'display:none'}">
       </div>
     </div>`;
   });
@@ -368,67 +406,76 @@ async function loadAttractions() {
       <input type="hidden" id="f_guideMapImage" value="${esc(d.guideMapImage||'')}">
       <img class="img-preview" id="preview_guideMapImage" src="${d.guideMapImage||''}" style="${d.guideMapImage?'':'display:none'}">
     </div>
-    <button class="btn btn-primary" onclick="saveAttractions()">💾 保存</button>
-  `;
+    <div style="margin-top:14px;display:flex;gap:12px;">
+      <button class="btn btn-primary" onclick="saveAttractions()">💾 保存</button>
+      <button class="btn btn-outline" onclick="makeAddBtn('attList', attrAddTemplate)">➕ 添加景点</button>
+    </div>`;
   document.getElementById('mainContent').innerHTML = html;
   bindUpload('fu_guidemap', 'f_guideMapImage', 'preview_guideMapImage');
 }
 
 async function saveAttractions() {
-  const list = document.getElementById('attList');
-  const inputs = list.querySelectorAll('[data-idx]');
-  const map = {};
-  inputs.forEach(el => {
-    const idx = el.dataset.idx;
-    if (!map[idx]) map[idx] = {};
-    map[idx][el.dataset.field] = el.value;
-  });
-  list.querySelectorAll('input[type="hidden"]').forEach(el => {
-    const idxMatch = el.id.match(/\d+$/);
-    if (idxMatch && map[idxMatch[0]]) map[idxMatch[0]].image = el.value;
-  });
+  const items = collectItems('attList');
   await fetch(API + '/api/admin/attractions', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items: Object.values(map), guideMapImage: document.getElementById('f_guideMapImage').value })
+    body: JSON.stringify({ items, guideMapImage: document.getElementById('f_guideMapImage').value })
   });
   toast('保存成功');
   loadAttractions();
 }
 
 // ======== Tab: 到达路线 ========
+function routesAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新路线 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>出发地（含emoji）</label><input type="text" value="" data-field="from"></div>
+    <div class="fg"><label>交通方式</label><input type="text" value="" data-field="method"></div>
+    <div class="fg"><label>路线说明</label><textarea data-field="description"></textarea></div>`;
+}
+
 async function loadRoutes() {
   const d = await fetchJSON('/api/admin/routes');
   let html = `<h1>📍 到达路线</h1><div class="dyn-list" id="routeList">`;
   d.items.forEach((r, i) => {
     html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>路线 ${i+1}</strong></div>
-      <div class="fg"><label>出发地（含emoji）</label><input type="text" value="${esc(r.from)}" data-idx="${i}" data-field="from"></div>
-      <div class="fg"><label>交通方式</label><input type="text" value="${esc(r.method)}" data-idx="${i}" data-field="method"></div>
-      <div class="fg"><label>路线说明</label><textarea data-idx="${i}" data-field="description">${esc(r.description)}</textarea></div>
+      <div class="dyn-header"><strong>路线 ${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>出发地（含emoji）</label><input type="text" value="${esc(r.from)}" data-field="from"></div>
+      <div class="fg"><label>交通方式</label><input type="text" value="${esc(r.method)}" data-field="method"></div>
+      <div class="fg"><label>路线说明</label><textarea data-field="description">${esc(r.description)}</textarea></div>
     </div>`;
   });
-  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('routes','routeList',['from','method','description'],'items')">💾 保存</button>`;
+  html += `</div>${saveBtnRow('routeList','routes','items')}`;
   document.getElementById('mainContent').innerHTML = html;
 }
 
 // ======== Tab: 周边小吃 ========
+function foodAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新小吃 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>店名</label><input type="text" value="" data-field="name"></div>
+    <div class="fg"><label>推荐菜</label><input type="text" value="" data-field="dish"></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="30.12" data-field="lat"></div>
+      <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="119.57" data-field="lng"></div>
+    </div>`;
+}
+
 async function loadFood() {
   const d = await fetchJSON('/api/admin/food');
   let html = `<h1>🍜 周边小吃</h1><div class="dyn-list" id="foodList">`;
   d.items.forEach((f, i) => {
     html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>小吃 ${i+1}</strong></div>
-      <div class="fg"><label>店名</label><input type="text" value="${esc(f.name)}" data-idx="${i}" data-field="name"></div>
-      <div class="fg"><label>推荐菜</label><input type="text" value="${esc(f.dish)}" data-idx="${i}" data-field="dish"></div>
-      <div class="fg"><label>描述</label><textarea data-idx="${i}" data-field="description">${esc(f.description)}</textarea></div>
+      <div class="dyn-header"><strong>小吃 ${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>店名</label><input type="text" value="${esc(f.name)}" data-field="name"></div>
+      <div class="fg"><label>推荐菜</label><input type="text" value="${esc(f.dish)}" data-field="dish"></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(f.description)}</textarea></div>
       <div class="fg-row">
-        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${f.lat}" data-idx="${i}" data-field="lat"></div>
-        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${f.lng}" data-idx="${i}" data-field="lng"></div>
+        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${f.lat}" data-field="lat"></div>
+        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${f.lng}" data-field="lng"></div>
       </div>
     </div>`;
   });
-  html += `</div><button class="btn btn-primary" style="margin-top:14px;" onclick="saveDynamic('food','foodList',['name','dish','description','lat','lng'],'items')">💾 保存</button>`;
+  html += `</div>${saveBtnRow('foodList','food','items')}`;
   document.getElementById('mainContent').innerHTML = html;
 }
 
