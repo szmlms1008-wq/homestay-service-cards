@@ -905,15 +905,23 @@ async function loadQRCode() {
   }, 100);
 }
 
-// 下载 QR 码为图片
+// 下载/保存 QR 码（兼容手机和电脑）
 window.downloadQRCode = function() {
   const canvas = document.querySelector('#qrCodeContainer canvas');
   if (!canvas) { toast('二维码未生成，请稍后重试'); return; }
-  const link = document.createElement('a');
-  link.download = 'qr-' + SLUG + '.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  toast('二维码已下载');
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    // 电脑端：自动下载
+    var a = document.createElement('a');
+    a.download = 'qr-' + SLUG + '.png';
+    a.href = url;
+    a.click();
+    // 手机端：打开新窗口，用户可以长按保存
+    setTimeout(function() {
+      window.open(url, '_blank');
+      toast('如未自动下载，请长按图片保存');
+    }, 500);
+  }, 'image/png');
 };
 
 // ======== Tab: 竞品雷达预告 ========
