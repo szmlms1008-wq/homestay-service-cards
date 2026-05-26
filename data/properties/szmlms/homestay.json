@@ -1,6 +1,6 @@
 {
-  "propertyType": "hotel",
-  "name": "1234",
+  "propertyType": "homestay",
+  "name": "szmlms",
   "logo": "",
   "coverImage": "",
   "description": "",
@@ -8,11 +8,12 @@
   "tags": [],
   "enabledModules": [
     "homestay",
+    "guide",
+    "attractions",
     "routes",
     "food",
+    "products",
     "tips",
-    "messages",
-    "facilities",
-    "business"
+    "messages"
   ]
 }
