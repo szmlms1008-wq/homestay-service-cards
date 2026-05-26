@@ -1,0 +1,17 @@
+{
+  "propertyType": "hotel",
+  "name": "rujia",
+  "logo": "",
+  "coverImage": "",
+  "description": "",
+  "tags": [],
+  "enabledModules": [
+    "homestay",
+    "routes",
+    "food",
+    "tips",
+    "messages",
+    "facilities",
+    "business"
+  ]
+}

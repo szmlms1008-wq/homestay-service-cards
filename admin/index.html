@@ -3,918 +3,266 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>民宿后台管理</title>
+<title>平台管理后台</title>
 <style>
 :root {
-  --canvas: #fefaf6; --surface-card: #fffbf7; --surface-soft: #faf3eb;
-  --primary: #d4896a; --primary-active: #b86d4f;
-  --ink: #2c2420; --body: #5c4f48; --muted: #8c7b72; --hairline: #e8ddd4;
-  --accent-green: #7da891; --error: #c64545;
-  --rounded-sm: 8px; --rounded-md: 12px; --rounded-full: 9999px;
-  --shadow: 0 1px 3px rgba(44,36,32,0.06), 0 2px 8px rgba(44,36,32,0.04);
-  --font-sans: -apple-system, "PingFang SC", system-ui, "Microsoft YaHei", sans-serif;
+  --primary: #0d9488; --primary-dark: #0f766e; --bg: #f5f6f8;
+  --card: #fff; --ink: #1a1a2e; --muted: #889999; --border: #eef0f4;
+  --rounded: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.04);
+  --font: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: var(--font-sans);
-  background: var(--surface-soft);
-  color: var(--body);
-  display: flex; min-height: 100vh;
-}
-
-/* Sidebar */
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:var(--bg); color:var(--ink); display:flex; min-height:100vh; }
 .sidebar {
-  width: 230px; background: var(--surface-card);
-  border-right: 1px solid var(--hairline);
-  padding: 20px 0;
-  flex-shrink: 0;
-  overflow-y: auto;
+  width:220px; background:var(--card); border-right:1px solid var(--border);
+  padding:20px 0; flex-shrink:0;
 }
-.sidebar h2 {
-  font-size: 16px; color: var(--ink);
-  padding: 0 20px 16px;
-  display: flex; align-items: center; gap: 8px;
-}
+.sidebar h2 { font-size:16px; padding:0 20px 16px; }
 .sidebar a {
-  display: block;
-  padding: 10px 20px; font-size: 14px;
-  color: var(--body); text-decoration: none;
-  border-left: 3px solid transparent; cursor: pointer;
-  transition: all 0.12s;
+  display:block; padding:10px 20px; font-size:14px; color:var(--ink);
+  text-decoration:none; border-left:3px solid transparent; cursor:pointer;
+  transition:all 0.12s;
 }
-.sidebar a:hover, .sidebar a.active {
-  color: var(--primary); background: var(--surface-soft);
-  border-left-color: var(--primary);
-}
-
-/* Main */
-.main {
-  flex: 1; padding: 28px; overflow-y: auto;
-  max-width: 900px;
-}
-.main h1 { font-size: 20px; color: var(--ink); margin-bottom: 22px; }
-
-/* Form */
-.fg { margin-bottom: 18px; }
-.fg label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-.fg label .hint { font-weight: 400; color: var(--muted); font-size: 11px; }
-.fg input[type="text"],
-.fg input[type="number"],
-.fg input[type="url"],
-.fg textarea {
-  width: 100%; padding: 10px 14px;
-  border: 1px solid var(--hairline); border-radius: var(--rounded-sm);
-  font-size: 14px; font-family: var(--font-sans);
-  background: var(--surface-card); color: var(--ink);
-  transition: border-color 0.15s;
-}
-.fg textarea { min-height: 80px; resize: vertical; }
-.fg input:focus, .fg textarea:focus { outline: none; border-color: var(--primary); }
-
-.fg-row {
-  display: flex; gap: 12px;
-}
-.fg-row .fg { flex: 1; }
-
-/* Buttons */
+.sidebar a:hover, .sidebar a.active { color:var(--primary); background:var(--bg); border-left-color:var(--primary); }
+.main { flex:1; padding:28px; overflow-y:auto; max-width:960px; }
+.main h1 { font-size:20px; margin-bottom:22px; }
+.card { background:var(--card); border-radius:var(--rounded); padding:20px; box-shadow:var(--shadow); margin-bottom:16px; }
+.card h3 { font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.stat { background:var(--card); border-radius:var(--rounded); padding:18px; box-shadow:var(--shadow); text-align:center; }
+.stat .num { font-size:28px; font-weight:800; color:var(--primary); }
+.stat .lbl { font-size:12px; color:var(--muted); margin-top:4px; }
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 14px; font-weight: 500; font-family: var(--font-sans);
-  padding: 10px 22px; border-radius: var(--rounded-full);
-  border: none; cursor: pointer;
-  transition: background 0.12s, transform 0.08s;
+  padding:8px 18px; border:none; border-radius:20px; font-size:13px; cursor:pointer;
+  font-weight:500; transition:all 0.15s;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-active); }
-.btn-danger { background: var(--error); color: #fff; }
-.btn-danger:hover { background: #b33a3a; }
-.btn-outline {
-  background: transparent; border: 1px solid var(--hairline);
-  color: var(--body);
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-danger { background:#c62828; color:#fff; }
+.btn-danger:hover { background:#b71c1c; }
+.btn-sm { padding:4px 12px; font-size:11px; }
+input, select {
+  padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+  font-size:13px; outline:none; background:var(--card);
 }
-.btn-sm { padding: 5px 14px; font-size: 12px; }
-
-/* Dynamic list */
-.dyn-list { display: flex; flex-direction: column; gap: 14px; }
-.dyn-item {
-  background: var(--surface-soft);
-  padding: 16px; border-radius: var(--rounded-sm);
-  border: 1px solid var(--hairline);
-  position: relative;
-}
-.dyn-item .dyn-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.dyn-item .dyn-header strong { font-size: 14px; color: var(--ink); }
-
-/* Image preview */
-.img-preview {
-  max-width: 200px; max-height: 130px;
-  border-radius: var(--rounded-sm); margin-top: 8px;
-  display: block; border: 1px solid var(--hairline);
-}
-
-/* Toggle */
-.toggle-row {
-  display: flex; align-items: center; gap: 10px;
-}
-.toggle {
-  position: relative; width: 44px; height: 24px;
-  background: var(--hairline); border-radius: 12px;
-  cursor: pointer; transition: background 0.2s;
-}
-.toggle.on { background: var(--accent-green); }
-.toggle::after {
-  content: ''; position: absolute;
-  top: 2px; left: 2px;
-  width: 20px; height: 20px;
-  background: #fff; border-radius: 50%;
-  transition: transform 0.2s;
-}
-.toggle.on::after { transform: translateX(20px); }
-
-/* Message list */
-.msg-list { max-height: 450px; overflow-y: auto; }
-.msg-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--surface-card); border-radius: var(--rounded-sm);
-  margin-bottom: 8px; border: 1px solid var(--hairline);
-  gap: 12px;
-}
-.msg-item .content { flex: 1; font-size: 14px; color: var(--ink); }
-.msg-item .time { font-size: 12px; color: var(--muted); white-space: nowrap; }
-
-/* Toast */
+input:focus, select:focus { border-color:var(--primary); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:8px 12px; font-size:11px; color:var(--muted); text-transform:uppercase; border-bottom:2px solid var(--border); }
+td { padding:10px 12px; border-bottom:1px solid var(--bg); }
 .toast {
-  position: fixed; bottom: 28px; right: 28px;
-  background: var(--ink); color: #fff;
-  padding: 12px 24px; border-radius: var(--rounded-full);
-  font-size: 14px; z-index: 9999;
-  display: none;
-  box-shadow: var(--shadow);
-  animation: fadeInUp 0.2s ease-out;
+  position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff;
+  padding:10px 20px; border-radius:20px; font-size:13px; z-index:9999; display:none;
 }
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  body { flex-direction: column; }
-  .sidebar {
-    width: 100%; display: flex; overflow-x: auto;
-    padding: 8px 8px; flex-shrink: 0;
-  }
-  .sidebar h2 { display: none; }
-  .sidebar a {
-    flex-shrink: 0; border-left: none;
-    border-bottom: 2px solid transparent;
-    padding: 8px 14px; font-size: 13px; white-space: nowrap;
-  }
-  .sidebar a.active { border-left: none; border-bottom-color: var(--primary); }
-  .main { padding: 18px; }
-  .fg-row { flex-direction: column; }
-}
+.pill { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:500; }
+.pill-homestay { background:#f0fdfa; color:#0d9488; }
+.pill-hotel { background:#eff6ff; color:#2563eb; }
+.pill-apartment { background:#faf5ff; color:#7c3aed; }
+.gap { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.login-wrap { max-width:400px; margin:80px auto; text-align:center; }
+.login-wrap input { width:100%; padding:12px; font-size:15px; margin-bottom:10px; }
+.login-wrap .btn { width:100%; padding:12px; font-size:15px; }
 </style>
 </head>
 <body>
 
-<div class="sidebar">
-  <h2>🏡 民宿后台</h2>
-  <a data-tab="homestay" class="active" onclick="switchTab('homestay')">🏡 民宿简介</a>
-  <a data-tab="guide" onclick="switchTab('guide')">🚪 入住导引</a>
-  <a data-tab="attractions" onclick="switchTab('attractions')">🗺️ 景区攻略</a>
-  <a data-tab="routes" onclick="switchTab('routes')">📍 到达路线</a>
-  <a data-tab="food" onclick="switchTab('food')">🍜 周边小吃</a>
-  <a data-tab="products" onclick="switchTab('products')">🛍️ 民宿好物</a>
-  <a data-tab="tips" onclick="switchTab('tips')">💡 温馨提示</a>
-  <a data-tab="facilities" onclick="switchTab('facilities')">🏊 酒店设施</a>
-  <a data-tab="business" onclick="switchTab('business')">💼 商务服务</a>
-  <a data-tab="nearby" onclick="switchTab('nearby')">🛒 周边便利</a>
-  <a data-tab="modules" onclick="switchTab('modules')">⚙️ 模块管理</a>
-  <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
-  <a data-tab="radar" onclick="switchTab('radar')" style="color:#d4896a;font-weight:600;">🔮 竞品雷达</a>
+<div class="sidebar" id="sidebar" style="display:none;">
+  <h2>⚙️ 平台管理</h2>
+  <a data-tab="overview" class="active" onclick="switchTab('overview')">📊 概览</a>
+  <a data-tab="properties" onclick="switchTab('properties')">🏡 店铺管理</a>
+  <a data-tab="users" onclick="switchTab('users')">👥 用户管理</a>
+  <a data-tab="logs" onclick="switchTab('logs')">📋 操作日志</a>
+  <a onclick="logout()" style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">🚪 退出登录</a>
 </div>
 
 <div class="main" id="mainContent"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const API = '';
+const TOKEN = localStorage.getItem('card_token') || '';
+const USER = JSON.parse(localStorage.getItem('card_user') || 'null');
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function authHeaders() {
+  return TOKEN ? { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN } : {};
 }
-
+async function api(method, path, body) {
+  const opts = { method, headers: authHeaders() };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  if (r.status === 401) { localStorage.clear(); window.location.reload(); }
+  return r.json();
+}
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.style.display = 'block';
-  clearTimeout(el._tid);
-  el._tid = setTimeout(() => { el.style.display = 'none'; }, 2200);
+  clearTimeout(el._t); el._t = setTimeout(() => el.style.display = 'none', 2000);
 }
 
-async function fetchJSON(path) {
-  const r = await fetch(API + path);
-  if (!r.ok) throw new Error(path + ' failed');
-  return r.json();
+// ====== 登录 ======
+if (!TOKEN || !USER || USER.role !== 'admin') {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="login-wrap">
+      <div style="font-size:48px;">🔐</div>
+      <h1 style="margin:12px 0;">平台管理后台</h1>
+      <form id="loginFm">
+        <input id="lu" type="text" placeholder="管理员用户名" autocomplete="username">
+        <input id="lp" type="password" placeholder="密码" autocomplete="current-password">
+        <button class="btn btn-primary" type="submit">登 录</button>
+      </form>
+      <p id="lerr" style="color:#c62828;margin-top:8px;font-size:13px;"></p>
+    </div>`;
+  document.getElementById('loginFm').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('lu').value,password:document.getElementById('lp').value}) });
+    const d = await r.json();
+    if (d.token && d.user.role === 'admin') { localStorage.setItem('card_token',d.token); localStorage.setItem('card_user',JSON.stringify(d.user)); window.location.reload(); }
+    else if (d.token) document.getElementById('lerr').textContent = '需要管理员权限';
+    else document.getElementById('lerr').textContent = d.error || '登录失败';
+  };
+} else {
+  document.getElementById('sidebar').style.display = '';
+  switchTab('overview');
 }
+
+function logout() { localStorage.clear(); window.location.reload(); }
 
 function switchTab(name) {
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   const link = document.querySelector(`[data-tab="${name}"]`);
   if (link) link.classList.add('active');
-  loadTab(name);
+  const loaders = { overview: loadOverview, properties: loadProperties, users: loadUsers, logs: loadLogs };
+  if (loaders[name]) loaders[name]();
 }
 
-async function uploadImage(file) {
-  const fd = new FormData();
-  fd.append('image', file);
-  const r = await fetch(API + '/api/admin/upload', { method: 'POST', body: fd });
-  if (!r.ok) { toast('上传失败'); return ''; }
-  const d = await r.json();
-  toast('图片上传成功');
-  return d.url;
-}
+// ====== 概览 ======
+async function loadOverview() {
+  const [props, users, logs] = await Promise.all([
+    api('GET','/api/admin/properties'),
+    api('GET','/api/admin/users'),
+    api('GET','/api/admin/logs')
+  ]);
+  const typeCounts = { homestay: props.filter(p=>p.property_type==='homestay').length, hotel: props.filter(p=>p.property_type==='hotel').length, apartment: props.filter(p=>p.property_type==='apartment').length };
 
-// ======== Upload Helper ========
-function bindUpload(selector, hiddenId, previewId) {
-  const input = document.getElementById(selector);
-  if (!input) return;
-  input.addEventListener('change', async function() {
-    if (!this.files[0]) return;
-    const url = await uploadImage(this.files[0]);
-    if (!url) return;
-    document.getElementById(hiddenId).value = url;
-    const preview = document.getElementById(previewId);
-    if (preview) { preview.src = url; preview.style.display = 'block'; }
-  });
-}
-
-// ======== Tab: 民宿简介 ========
-async function loadHomestay() {
-  const d = await fetchJSON('/api/admin/homestay');
-  const types = [['homestay','🏡 民宿'],['hotel','🏨 酒店'],['apartment','🏢 公寓']];
   document.getElementById('mainContent').innerHTML = `
-    <h1>🏡 基本信息</h1>
-    <div class="fg"><label>业态类型</label>
-      <select id="f_propertyType" class="type-select" style="padding:10px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;width:100%;background:var(--surface-card);">
-        ${types.map(([v,label]) => `<option value="${v}" ${d.propertyType===v?'selected':''}>${label}</option>`).join('')}
-      </select>
+    <h1>📊 平台概览</h1>
+    <div class="stats">
+      <div class="stat"><div class="num">${props.length}</div><div class="lbl">总店铺数</div></div>
+      <div class="stat"><div class="num">${users.length}</div><div class="lbl">注册用户</div></div>
+      <div class="stat"><div class="num">${logs.length}</div><div class="lbl">操作记录</div></div>
+      <div class="stat"><div class="num">${typeCounts.homestay+typeCounts.hotel+typeCounts.apartment}</div><div class="lbl">活跃业态</div></div>
     </div>
-    <div class="fg"><label>名称</label><input type="text" id="f_name" value="${esc(d.name)}"></div>
-    <div class="fg"><label>Logo 图片 <span class="hint">（推荐 200×200px）</span></label>
-      <input type="file" accept="image/*" id="fu_logo">
-      <input type="hidden" id="f_logo" value="${esc(d.logo||'')}">
-      <img class="img-preview" id="preview_logo" src="${d.logo||''}" style="${d.logo?'':'display:none'}">
-    </div>
-    <div class="fg"><label>封面大图 <span class="hint">（推荐 750×500px）</span></label>
-      <input type="file" accept="image/*" id="fu_cover">
-      <input type="hidden" id="f_coverImage" value="${esc(d.coverImage||'')}">
-      <img class="img-preview" id="preview_coverImage" src="${d.coverImage||''}" style="${d.coverImage?'':'display:none'}">
-    </div>
-    <div class="fg"><label>一句话简介</label><textarea id="f_description">${esc(d.description)}</textarea></div>
-    <div class="fg"><label>特色标签（每行一个）</label><textarea id="f_tags">${d.tags.join('\n')}</textarea></div>
-    <button class="btn btn-primary" onclick="saveHomestay()">💾 保存</button>
-  `;
-  bindUpload('fu_logo', 'f_logo', 'preview_logo');
-  bindUpload('fu_cover', 'f_coverImage', 'preview_coverImage');
-}
-
-async function saveHomestay() {
-  const data = {
-    propertyType: document.getElementById('f_propertyType').value,
-    name: document.getElementById('f_name').value,
-    logo: document.getElementById('f_logo').value,
-    coverImage: document.getElementById('f_coverImage').value,
-    description: document.getElementById('f_description').value,
-    tags: document.getElementById('f_tags').value.split('\n').map(t => t.trim()).filter(t => t)
-  };
-  await fetch(API + '/api/admin/homestay', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  toast('保存成功');
-}
-
-// ======== Generic dynamic list helpers ========
-async function itemImageUpload(input) {
-  if (!input.files[0]) return;
-  const url = await uploadImage(input.files[0]);
-  if (!url) return;
-  const item = input.closest('.dyn-item');
-  item.querySelector('[data-field="image"]').value = url;
-  const preview = item.querySelector('.img-preview');
-  if (preview) { preview.src = url; preview.style.display = 'block'; }
-}
-
-function collectItems(listId) {
-  const container = document.getElementById(listId);
-  const items = [];
-  container.querySelectorAll('.dyn-item').forEach(el => {
-    const item = {};
-    el.querySelectorAll('[data-field]').forEach(input => {
-      if (input.type === 'file') return;
-      const field = input.dataset.field;
-      if (input.type === 'checkbox') item[field] = input.checked;
-      else if (input.type === 'number') item[field] = Number(input.value);
-      else item[field] = input.value;
-    });
-    const toggle = el.querySelector('.toggle');
-    if (toggle) item.active = toggle.classList.contains('on');
-    items.push(item);
-  });
-  return items;
-}
-
-function makeAddBtn(listId, templateFn) {
-  const container = document.getElementById(listId);
-  const count = container.querySelectorAll('.dyn-item').length;
-  const div = document.createElement('div');
-  div.className = 'dyn-item';
-  div.innerHTML = templateFn(count);
-  container.appendChild(div);
-}
-
-function delBtn() { return '<button class="btn btn-danger btn-sm" onclick="this.closest(\'.dyn-item\').remove()">🗑 删除</button>'; }
-
-function saveBtnRow(listId, module, wrapperKey, afterSave) {
-  return `<div style="margin-top:14px;display:flex;gap:12px;">
-    <button class="btn btn-primary" onclick="
-      const items = collectItems('${listId}');
-      fetch(API + '/api/admin/${module}', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({${wrapperKey}:items})}).then(()=>{toast('保存成功');${afterSave || 'loadTab(\''+module+'\')'};});
-    ">💾 保存</button>
-    <button class="btn btn-outline" onclick="makeAddBtn('${listId}', ${module}AddTemplate)">➕ 添加</button>
-  </div>`;
-}
-
-// ======== Tab: 入住导引 ========
-function guideAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新步骤 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>标题</label><input type="text" value="" data-field="title"></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
-    <div class="fg"><label>步骤配图 <span class="hint">（推荐 600×400px）</span></label>
-      <input type="file" accept="image/*" onchange="itemImageUpload(this)">
-      <input type="hidden" data-field="image" value="">
-      <img class="img-preview" src="" style="display:none">
-    </div>`;
-}
-
-async function loadGuide() {
-  const d = await fetchJSON('/api/admin/guide');
-  let html = `<h1>🚪 入住导引</h1><div class="dyn-list" id="guideList">`;
-  d.steps.forEach((s, i) => {
-    html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>步骤 ${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>标题</label><input type="text" value="${esc(s.title)}" data-field="title"></div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(s.description)}</textarea></div>
-      <div class="fg"><label>步骤配图 <span class="hint">（推荐 600×400px）</span></label>
-        <input type="file" accept="image/*" onchange="itemImageUpload(this)">
-        <input type="hidden" data-field="image" value="${esc(s.image||'')}">
-        <img class="img-preview" src="${s.image||''}" style="${s.image?'':'display:none'}">
-      </div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('guideList','guide','steps')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 景区攻略 ========
-function attrAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新景点 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>名称</label><input type="text" value="" data-field="name"></div>
-    <div class="fg"><label>简介</label><textarea data-field="description"></textarea></div>
-    <div class="fg"><label>景点图片 <span class="hint">（推荐 600×400px）</span></label>
-      <input type="file" accept="image/*" onchange="itemImageUpload(this)">
-      <input type="hidden" data-field="image" value="">
-      <img class="img-preview" src="" style="display:none">
-    </div>`;
-}
-
-async function loadAttractions() {
-  const d = await fetchJSON('/api/admin/attractions');
-  let html = `<h1>🗺️ 景区攻略</h1><div class="dyn-list" id="attList">`;
-  d.items.forEach((a, i) => {
-    html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>景点 ${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>名称</label><input type="text" value="${esc(a.name)}" data-field="name"></div>
-      <div class="fg"><label>简介</label><textarea data-field="description">${esc(a.description)}</textarea></div>
-      <div class="fg"><label>景点图片 <span class="hint">（推荐 600×400px）</span></label>
-        <input type="file" accept="image/*" onchange="itemImageUpload(this)">
-        <input type="hidden" data-field="image" value="${esc(a.image||'')}">
-        <img class="img-preview" src="${a.image||''}" style="${a.image?'':'display:none'}">
-      </div>
-    </div>`;
-  });
-  html += `</div>
-    <div class="fg"><label>景区导览图 <span class="hint">（推荐 750×500px）</span></label>
-      <input type="file" accept="image/*" id="fu_guidemap">
-      <input type="hidden" id="f_guideMapImage" value="${esc(d.guideMapImage||'')}">
-      <img class="img-preview" id="preview_guideMapImage" src="${d.guideMapImage||''}" style="${d.guideMapImage?'':'display:none'}">
-    </div>
-    <div style="margin-top:14px;display:flex;gap:12px;">
-      <button class="btn btn-primary" onclick="saveAttractions()">💾 保存</button>
-      <button class="btn btn-outline" onclick="makeAddBtn('attList', attrAddTemplate)">➕ 添加景点</button>
-    </div>`;
-  document.getElementById('mainContent').innerHTML = html;
-  bindUpload('fu_guidemap', 'f_guideMapImage', 'preview_guideMapImage');
-}
-
-async function saveAttractions() {
-  const items = collectItems('attList');
-  await fetch(API + '/api/admin/attractions', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, guideMapImage: document.getElementById('f_guideMapImage').value })
-  });
-  toast('保存成功');
-  loadAttractions();
-}
-
-// ======== Tab: 到达路线 ========
-function routesAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新路线 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>出发地（含emoji）</label><input type="text" value="" data-field="from"></div>
-    <div class="fg"><label>交通方式</label><input type="text" value="" data-field="method"></div>
-    <div class="fg"><label>路线说明</label><textarea data-field="description"></textarea></div>`;
-}
-
-async function loadRoutes() {
-  const d = await fetchJSON('/api/admin/routes');
-  let html = `<h1>📍 到达路线</h1><div class="dyn-list" id="routeList">`;
-  d.items.forEach((r, i) => {
-    html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>路线 ${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>出发地（含emoji）</label><input type="text" value="${esc(r.from)}" data-field="from"></div>
-      <div class="fg"><label>交通方式</label><input type="text" value="${esc(r.method)}" data-field="method"></div>
-      <div class="fg"><label>路线说明</label><textarea data-field="description">${esc(r.description)}</textarea></div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('routeList','routes','items')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 周边小吃 ========
-function foodAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新小吃 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>店名</label><input type="text" value="" data-field="name"></div>
-    <div class="fg"><label>推荐菜</label><input type="text" value="" data-field="dish"></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
-    <div class="fg-row">
-      <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="30.12" data-field="lat"></div>
-      <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="119.57" data-field="lng"></div>
-    </div>`;
-}
-
-async function loadFood() {
-  const d = await fetchJSON('/api/admin/food');
-  let html = `<h1>🍜 周边小吃</h1><div class="dyn-list" id="foodList">`;
-  d.items.forEach((f, i) => {
-    html += `<div class="dyn-item">
-      <div class="dyn-header"><strong>小吃 ${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>店名</label><input type="text" value="${esc(f.name)}" data-field="name"></div>
-      <div class="fg"><label>推荐菜</label><input type="text" value="${esc(f.dish)}" data-field="dish"></div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(f.description)}</textarea></div>
-      <div class="fg-row">
-        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${f.lat}" data-field="lat"></div>
-        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${f.lng}" data-field="lng"></div>
-      </div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('foodList','food','items')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 民宿好物 ========
-async function loadProducts() {
-  const d = await fetchJSON('/api/admin/products');
-  let html = `<h1>🛍️ 民宿好物</h1><div class="dyn-list" id="prodList">`;
-  d.items.forEach((p, i) => {
-    html += `<div class="dyn-item" data-prod-idx="${i}">
-      <div class="dyn-header">
-        <strong>商品 ${i+1}</strong>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div class="toggle-row">
-            <span style="font-size:12px;color:var(--muted);">上架</span>
-            <div class="toggle ${p.active?'on':''}" data-field="active" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="this.closest('.dyn-item').remove()">🗑 删除</button>
-        </div>
-      </div>
-      <div class="fg"><label>名称</label><input type="text" value="${esc(p.name)}" data-field="name"></div>
-      <div class="fg-row">
-        <div class="fg"><label>价格（元）</label><input type="number" value="${p.price}" data-field="price"></div>
-      </div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(p.description)}</textarea></div>
-      <div class="fg-row">
-        <div class="fg"><label>微信号</label><input type="text" value="${esc(p.wechat)}" data-field="wechat"></div>
-        <div class="fg"><label>电话</label><input type="text" value="${esc(p.phone)}" data-field="phone"></div>
-      </div>
-      <div class="fg"><label>商品图片 <span class="hint">（推荐 600×600px）</span></label>
-        <input type="file" accept="image/*" onchange="productImageUpload(this)">
-        <input type="hidden" data-field="image" value="${esc(p.image||'')}">
-        <img class="img-preview" src="${p.image||''}" style="${p.image?'':'display:none'}">
-      </div>
-    </div>`;
-  });
-  html += `</div>
-    <div style="margin-top:14px;display:flex;gap:12px;">
-      <button class="btn btn-primary" onclick="saveProducts()">💾 保存全部</button>
-      <button class="btn btn-outline" onclick="addProductRow()">➕ 添加商品</button>
-    </div>`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-async function saveProducts() {
-  const container = document.getElementById('prodList');
-  const items = [];
-  container.querySelectorAll('.dyn-item').forEach(el => {
-    const item = {};
-    el.querySelectorAll('[data-field]').forEach(input => {
-      if (input.type === 'file') return;
-      const field = input.dataset.field;
-      if (input.type === 'number') item[field] = Number(input.value);
-      else item[field] = input.value;
-    });
-    // toggle active
-    const toggle = el.querySelector('.toggle');
-    item.active = toggle ? toggle.classList.contains('on') : true;
-    items.push(item);
-  });
-  await fetch(API + '/api/admin/products', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items })
-  });
-  toast('保存成功');
-  loadProducts();
-}
-
-function addProductRow() {
-  const container = document.getElementById('prodList');
-  const count = container.querySelectorAll('.dyn-item').length;
-  const div = document.createElement('div');
-  div.className = 'dyn-item';
-  div.innerHTML = `
-    <div class="dyn-header">
-      <strong>新商品 ${count + 1}</strong>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div class="toggle-row">
-          <span style="font-size:12px;color:var(--muted);">上架</span>
-          <div class="toggle on" data-field="active" onclick="this.classList.toggle('on')"></div>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="this.closest('.dyn-item').remove()">🗑 删除</button>
+    <div class="card">
+      <h3>🏡 业态分布</h3>
+      <div style="display:flex;gap:24px;">
+        <div><span class="pill pill-homestay">🏡 民宿</span> <strong>${typeCounts.homestay}</strong></div>
+        <div><span class="pill pill-hotel">🏨 酒店</span> <strong>${typeCounts.hotel}</strong></div>
+        <div><span class="pill pill-apartment">🏢 公寓</span> <strong>${typeCounts.apartment}</strong></div>
       </div>
     </div>
-    <div class="fg"><label>名称</label><input type="text" value="" data-field="name"></div>
-    <div class="fg-row"><div class="fg"><label>价格（元）</label><input type="number" value="0" data-field="price"></div></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
-    <div class="fg-row">
-      <div class="fg"><label>微信号</label><input type="text" value="homestay_shop" data-field="wechat"></div>
-      <div class="fg"><label>电话</label><input type="text" value="13800001234" data-field="phone"></div>
-    </div>
-    <div class="fg"><label>商品图片 <span class="hint">（推荐 600×600px）</span></label>
-      <input type="file" accept="image/*" onchange="productImageUpload(this)">
-      <input type="hidden" data-field="image" value="">
-      <img class="img-preview" src="" style="display:none">
+    <div class="card">
+      <h3>📋 最新操作</h3>
+      <table><thead><tr><th>时间</th><th>店铺</th><th>操作</th></tr></thead>
+        <tbody>${logs.slice(0,10).map(l => `<tr><td>${l.created_at||''}</td><td>${l.property_slug||'-'}</td><td>${l.action}</td></tr>`).join('')}</tbody>
+      </table>
     </div>
   `;
-  container.appendChild(div);
 }
 
-async function productImageUpload(input) {
-  if (!input.files[0]) return;
-  const url = await uploadImage(input.files[0]);
-  if (!url) return;
-  const item = input.closest('.dyn-item');
-  item.querySelector('[data-field="image"]').value = url;
-  const preview = item.querySelector('.img-preview');
-  if (preview) { preview.src = url; preview.style.display = 'block'; }
-}
+// ====== 店铺管理 ======
+async function loadProperties() {
+  const props = await api('GET', '/api/admin/properties');
+  const users = await api('GET', '/api/admin/users');
+  const ownerOpts = users.map(u => `<option value="${u.id}">${u.username}</option>`).join('');
 
-// ======== Tab: 温馨提示 ========
-async function loadTips() {
-  const d = await fetchJSON('/api/admin/tips');
   document.getElementById('mainContent').innerHTML = `
-    <h1>💡 温馨提示</h1>
-    <div class="fg"><label>WiFi 名称</label><input type="text" id="f_wifi" value="${esc(d.wifi)}"></div>
-    <div class="fg"><label>WiFi 密码</label><input type="text" id="f_wifiPassword" value="${esc(d.wifiPassword)}"></div>
-    <div class="fg"><label>退房时间</label><input type="text" id="f_checkOutTime" value="${esc(d.checkOutTime)}"></div>
-    <div class="fg"><label>紧急联系电话</label><input type="text" id="f_emergencyPhone" value="${esc(d.emergencyPhone)}"></div>
-    <div class="fg"><label>入住须知（每行一条）</label><textarea id="f_notices">${d.notices.join('\n')}</textarea></div>
-    <button class="btn btn-primary" onclick="saveTips()">💾 保存</button>
-  `;
-}
-
-async function saveTips() {
-  const data = {
-    wifi: document.getElementById('f_wifi').value,
-    wifiPassword: document.getElementById('f_wifiPassword').value,
-    checkOutTime: document.getElementById('f_checkOutTime').value,
-    emergencyPhone: document.getElementById('f_emergencyPhone').value,
-    notices: document.getElementById('f_notices').value.split('\n').map(t => t.trim()).filter(t => t)
-  };
-  await fetch(API + '/api/admin/tips', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  toast('保存成功');
-}
-
-// ======== Tab: 留言管理 ========
-async function loadMessages() {
-  const d = await fetchJSON('/api/admin/messages');
-  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-    <h1 style="margin-bottom:0;">📝 留言管理 <span style="font-size:14px;color:var(--muted);font-weight:400;">（共 ${d.length} 条）</span></h1>
-    <button class="btn btn-outline btn-sm" onclick="loadMessages()">🔄 刷新</button>
-  </div>`;
-  if (d.length === 0) {
-    html += `<p style="color:var(--muted);padding:24px 0;">暂无留言</p>`;
-  } else {
-    html += `<div class="msg-list">`;
-    [...d].reverse().forEach(m => {
-      const dt = new Date(m.createdAt);
-      const ds = dt.toLocaleString('zh-CN', { hour12: false });
-      html += `<div class="msg-item">
-        <span class="content">${esc(m.content)}</span>
-        <span class="time">${ds}</span>
-        <button class="btn btn-danger btn-sm" onclick="deleteMsg('${m.id}')">删除</button>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-async function deleteMsg(id) {
-  await fetch(API + '/api/admin/messages/' + id, { method: 'DELETE' });
-  toast('留言已删除');
-  loadMessages();
-}
-
-// ======== Tab: 酒店设施 ========
-function facilitiesAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新设施 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>`;
-}
-
-async function loadFacilities() {
-  const d = await fetchJSON('/api/admin/facilities');
-  let html = `<h1>🏊 酒店设施</h1><div class="dyn-list" id="facList">`;
-  d.items.forEach((f, i) => {
-    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(f.name)}" data-field="name"></div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(f.description)}</textarea></div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('facList','facilities','items')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 商务服务 ========
-function businessAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新服务 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>`;
-}
-
-async function loadBusiness() {
-  const d = await fetchJSON('/api/admin/business');
-  let html = `<h1>💼 商务服务</h1><div class="dyn-list" id="bizList">`;
-  d.items.forEach((b, i) => {
-    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(b.name)}" data-field="name"></div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(b.description)}</textarea></div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('bizList','business','items')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 周边便利 ========
-function nearbyAddTemplate(n) {
-  return `<div class="dyn-header"><strong>新地点 ${n+1}</strong>${delBtn()}</div>
-    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
-    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
-    <div class="fg-row">
-      <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="30.12" data-field="lat"></div>
-      <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="119.57" data-field="lng"></div>
-    </div>`;
-}
-
-async function loadNearby() {
-  const d = await fetchJSON('/api/admin/nearby');
-  let html = `<h1>🛒 周边便利</h1><div class="dyn-list" id="nearList">`;
-  d.items.forEach((n, i) => {
-    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
-      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(n.name)}" data-field="name"></div>
-      <div class="fg"><label>描述</label><textarea data-field="description">${esc(n.description)}</textarea></div>
-      <div class="fg-row">
-        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${n.lat||30.12}" data-field="lat"></div>
-        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${n.lng||119.57}" data-field="lng"></div>
-      </div>
-    </div>`;
-  });
-  html += `</div>${saveBtnRow('nearList','nearby','items')}`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======== Tab: 模块管理 ========
-const ALL_MODULES = [
-  { id: 'homestay',    label: '🏡 住宿简介', types: ['homestay','hotel','apartment'] },
-  { id: 'guide',       label: '🚪 入住导引', types: ['homestay','apartment'] },
-  { id: 'attractions', label: '🗺️ 景区攻略', types: ['homestay'] },
-  { id: 'routes',      label: '📍 到达路线', types: ['homestay','hotel','apartment'] },
-  { id: 'food',        label: '🍜 周边小吃', types: ['homestay','hotel'] },
-  { id: 'products',    label: '🛍️ 好物推荐', types: ['homestay'] },
-  { id: 'tips',        label: '💡 温馨提示', types: ['homestay','hotel','apartment'] },
-  { id: 'facilities',  label: '🏊 酒店设施', types: ['hotel','apartment'] },
-  { id: 'business',    label: '💼 商务服务', types: ['hotel'] },
-  { id: 'nearby',      label: '🛒 周边便利', types: ['apartment'] },
-  { id: 'messages',    label: '📝 留言板',   types: ['homestay','hotel','apartment'] },
-];
-
-const TYPE_NAMES = { homestay: '🏡 民宿', hotel: '🏨 酒店', apartment: '🏢 公寓' };
-
-async function loadModules() {
-  const info = await fetchJSON('/api/admin/homestay');
-  const enabled = info.enabledModules || [];
-
-  let html = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-      <h1 style="margin-bottom:0;">⚙️ 模块管理</h1>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:13px;color:var(--muted);">当前业态:</span>
-        <select id="modType" style="padding:8px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;background:var(--surface-card);" onchange="switchType()">
-          ${Object.entries(TYPE_NAMES).map(([v,label]) => `<option value="${v}" ${info.propertyType===v?'selected':''}>${label}</option>`).join('')}
-        </select>
-        <span style="font-size:11px;color:var(--muted);">切换业态自动重置为默认模块</span>
+      <h1 style="margin-bottom:0;">🏡 店铺管理</h1>
+      <button class="btn btn-primary" onclick="showCreateForm()">➕ 创建店铺</button>
+    </div>
+    <div class="card" id="createForm" style="display:none;">
+      <h3>创建新店铺</h3>
+      <div class="gap" style="margin-bottom:12px;">
+        <input id="fSlug" type="text" placeholder="URL标识 (英文)" style="width:160px;">
+        <input id="fName" type="text" placeholder="店铺名称" style="width:200px;">
+        <select id="fType"><option value="homestay">🏡 民宿</option><option value="hotel">🏨 酒店</option><option value="apartment">🏢 公寓</option></select>
+        <select id="fOwner"><option value="">无店老板</option>${ownerOpts}</select>
+        <input id="fPhone" type="text" placeholder="联系电话" style="width:140px;">
+      </div>
+      <div class="gap">
+        <button class="btn btn-primary" onclick="createProperty()">✅ 创建</button>
+        <button class="btn" onclick="document.getElementById('createForm').style.display='none'" style="background:#e5e7eb;">取消</button>
       </div>
     </div>
-    <p class="subtitle" style="color:var(--muted);font-size:13px;margin-bottom:20px;">控制客人端显示哪些板块。默认根据业态推荐，可自由增减。</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-  `;
-
-  ALL_MODULES.forEach(m => {
-    const on = enabled.includes(m.id);
-    html += `
-      <div class="mod-item" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface-card);border-radius:var(--rounded-sm);border:1px solid var(--hairline);">
-        <div>
-          <span style="font-size:15px;font-weight:500;">${m.label}</span>
-          <span style="font-size:11px;color:var(--muted);margin-left:8px;">默认: ${m.types.map(t=>TYPE_NAMES[t]||t).join(' ')}</span>
-        </div>
-        <div class="toggle ${on?'on':''}" data-mod="${m.id}" onclick="toggleModule(this)"></div>
-      </div>
-    `;
-  });
-
-  html += `</div>
-    <div style="margin-top:20px;display:flex;gap:12px;">
-      <button class="btn btn-primary" onclick="saveModules()">💾 保存模块设置</button>
-      <button class="btn btn-outline" onclick="resetModules()">🔄 重置为业态默认</button>
-    </div>`;
-
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-function toggleModule(el) {
-  el.classList.toggle('on');
-}
-
-async function switchType() {
-  const type = document.getElementById('modType').value;
-  const info = await fetchJSON('/api/admin/homestay');
-  // 获取该业态的默认模块
-  const defaults = {'homestay':['homestay','guide','attractions','routes','food','products','tips','messages'],'hotel':['homestay','routes','food','tips','messages','facilities','business'],'apartment':['homestay','guide','routes','tips','messages','facilities','nearby']};
-  const modules = defaults[type] || defaults.homestay;
-  // 更新后端
-  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({propertyType:type,enabledModules:modules})});
-  toast('已切换到 ' + (TYPE_NAMES[type]||type) + '，模块已重置为默认');
-  loadModules();
-}
-
-async function saveModules() {
-  const enabled = [];
-  document.querySelectorAll('.toggle.on[data-mod]').forEach(t => enabled.push(t.dataset.mod));
-  const type = document.getElementById('modType').value;
-  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type})});
-  toast('模块设置已保存（' + enabled.length + ' 个模块启用）');
-}
-
-async function resetModules() {
-  const type = document.getElementById('modType').value;
-  const defaults = {'homestay':['homestay','guide','attractions','routes','food','products','tips','messages'],'hotel':['homestay','routes','food','tips','messages','facilities','business'],'apartment':['homestay','guide','routes','tips','messages','facilities','nearby']};
-  const modules = defaults[type] || defaults.homestay;
-  document.querySelectorAll('.toggle[data-mod]').forEach(t => t.classList.remove('on'));
-  modules.forEach(m => { const el = document.querySelector(`.toggle[data-mod="${m}"]`); if (el) el.classList.add('on'); });
-  toast('已重置为 ' + (TYPE_NAMES[type]||type) + ' 默认（' + modules.length + ' 个模块）');
-}
-
-// ======== Tab: 竞品雷达预告 ========
-async function loadRadar() {
-  document.getElementById('mainContent').innerHTML = `
-    <div style="max-width:560px;">
-      <div style="font-size:56px;margin-bottom:8px;">🔮</div>
-      <h1 style="margin-bottom:8px;">竞品雷达</h1>
-      <p style="font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.7;">
-        实时追踪周边民宿价格变化，自动分析市场竞争态势。
-        帮你回答一个问题：<strong style="color:var(--ink);">隔壁老王今天卖了多少钱？</strong>
-      </p>
-
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
-          <div style="font-size:28px;margin-bottom:8px;">📊</div>
-          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格实时监控</div>
-          <div style="font-size:13px;color:var(--muted);">美团/途家/小猪三平台同时对比，价格变动实时通知</div>
-        </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
-          <div style="font-size:28px;margin-bottom:8px;">🎯</div>
-          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">竞争指数分析</div>
-          <div style="font-size:13px;color:var(--muted);">MPI/ARI/RGI 三大指标，一眼看懂你在市场中的位置</div>
-        </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
-          <div style="font-size:28px;margin-bottom:8px;">📍</div>
-          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">定位搜索竞品</div>
-          <div style="font-size:13px;color:var(--muted);">GPS 定位 + 途家数据，自动发现周边竞品民宿</div>
-        </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
-          <div style="font-size:28px;margin-bottom:8px;">🌡️</div>
-          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格温度计</div>
-          <div style="font-size:13px;color:var(--muted);">你的价格在市场里的位置——偏低有优势还是偏高该降价</div>
-        </div>
-      </div>
-
-      <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:24px;text-align:center;border:1px solid #f59e0b20;">
-        <div style="font-size:18px;font-weight:700;color:#92400e;margin-bottom:6px;">🚀 即将上线 · 内测招募中</div>
-        <p style="font-size:14px;color:#a16207;margin-bottom:16px;line-height:1.6;">
-          我们正在邀请首批民宿老板免费试用竞品雷达。<br>
-          感兴趣的话，留下你的微信号，上线后第一时间通知你。
-        </p>
-        <div style="display:flex;gap:8px;justify-content:center;">
-          <input id="radarPhone" type="text" placeholder="请输入微信号或手机号" style="padding:10px 16px;border:1px solid #f59e0b40;border-radius:8px;font-size:14px;width:240px;outline:none;background:#fff;">
-          <button class="btn btn-primary" onclick="submitRadarSignup()" style="background:#92400e;">📩 抢先体验</button>
-        </div>
-        <p id="radarMsg" style="font-size:13px;color:#92400e;margin-top:10px;min-height:20px;"></p>
-      </div>
-    </div>
+    <table>
+      <thead><tr><th>店铺</th><th>URL</th><th>业态</th><th>店老板</th><th>创建时间</th><th>操作</th></tr></thead>
+      <tbody>
+        ${props.map(p => {
+          const ownerName = users.find(u => u.id === p.owner_user_id)?.username || '-';
+          const typePill = {homestay:'pill-homestay',hotel:'pill-hotel',apartment:'pill-apartment'};
+          const typeLabel = {homestay:'🏡 民宿',hotel:'🏨 酒店',apartment:'🏢 公寓'};
+          return `<tr>
+            <td><strong>${p.name}</strong></td>
+            <td><code>${p.slug}</code></td>
+            <td><span class="pill ${typePill[p.property_type]||''}">${typeLabel[p.property_type]||p.property_type}</span></td>
+            <td>${ownerName}</td>
+            <td>${p.created_at||''}</td>
+            <td class="gap">
+              <a href="/p/${p.slug}" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">👁 预览</a>
+              <a href="/p/${p.slug}/admin" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">✏️ 管理</a>
+              <button class="btn btn-sm btn-danger" onclick="deleteProperty(${p.id},'${p.slug}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
   `;
 }
 
-async function submitRadarSignup() {
-  const phone = document.getElementById('radarPhone').value.trim();
-  if (!phone) { document.getElementById('radarMsg').textContent = '请输入联系方式'; return; }
-  // 保存到留言系统
-  await fetch(API + '/api/messages', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({content: '【竞品雷达预约】' + phone})
-  });
-  document.getElementById('radarMsg').textContent = '已收到！上线后我们会第一时间联系你 ✅';
-  document.getElementById('radarPhone').value = '';
-}
+window.showCreateForm = () => document.getElementById('createForm').style.display = '';
 
-// ======== Router ========
-const TAB_LOADERS = {
-  homestay: loadHomestay,
-  guide: loadGuide,
-  attractions: loadAttractions,
-  routes: loadRoutes,
-  food: loadFood,
-  products: loadProducts,
-  tips: loadTips,
-  facilities: loadFacilities,
-  business: loadBusiness,
-  nearby: loadNearby,
-  modules: loadModules,
-  messages: loadMessages,
-  radar: loadRadar
+window.createProperty = async () => {
+  const body = {
+    slug: document.getElementById('fSlug').value.trim(),
+    name: document.getElementById('fName').value.trim(),
+    property_type: document.getElementById('fType').value,
+    owner_user_id: document.getElementById('fOwner').value ? parseInt(document.getElementById('fOwner').value) : null,
+    contact_phone: document.getElementById('fPhone').value.trim(),
+  };
+  if (!body.slug || !body.name) return toast('slug 和名称必填');
+  const r = await api('POST', '/api/admin/properties', body);
+  if (r.success) { toast('店铺 ' + body.slug + ' 创建成功！访问: /p/' + body.slug); loadProperties(); }
+  else toast(r.error || '创建失败');
 };
 
-let currentTab = 'homestay';
-let msgPollTimer = null;
+window.deleteProperty = async (id, slug) => {
+  if (!confirm('确定删除店铺「' + slug + '」吗？')) return;
+  await api('DELETE', '/api/admin/properties/' + id);
+  toast('已删除');
+  loadProperties();
+};
 
-function loadTab(name) {
-  // Clear old poll timer
-  if (msgPollTimer) { clearInterval(msgPollTimer); msgPollTimer = null; }
-  currentTab = name;
-  if (TAB_LOADERS[name]) TAB_LOADERS[name]();
-  // Auto-poll messages every 10s when on that tab
-  if (name === 'messages') {
-    msgPollTimer = setInterval(() => {
-      if (currentTab === 'messages') loadMessages();
-    }, 10000);
-  }
+// ====== 用户管理 ======
+async function loadUsers() {
+  const users = await api('GET', '/api/admin/users');
+  document.getElementById('mainContent').innerHTML = `
+    <h1>👥 用户管理</h1>
+    <table>
+      <thead><tr><th>用户名</th><th>角色</th><th>注册时间</th><th>最后登录</th></tr></thead>
+      <tbody>${users.map(u => `<tr><td><strong>${u.username}</strong></td><td>${u.role}</td><td>${u.created_at||''}</td><td>${u.last_login||'-'}</td></tr>`).join('')}</tbody>
+    </table>
+  `;
 }
 
-document.addEventListener('DOMContentLoaded', () => loadTab('homestay'));
+// ====== 操作日志 ======
+async function loadLogs() {
+  const logs = await api('GET', '/api/admin/logs');
+  document.getElementById('mainContent').innerHTML = `
+    <h1>📋 操作日志</h1>
+    <table>
+      <thead><tr><th>时间</th><th>店铺</th><th>操作</th><th>详情</th></tr></thead>
+      <tbody>${logs.slice(0,50).map(l => `<tr><td style="white-space:nowrap;">${l.created_at||''}</td><td>${l.property_slug||'-'}</td><td>${l.action}</td><td style="color:var(--muted);font-size:12px;">${(l.details||'').substring(0,80)}</td></tr>`).join('')}</tbody>
+    </table>
+  `;
+}
 </script>
 </body>
 </html>

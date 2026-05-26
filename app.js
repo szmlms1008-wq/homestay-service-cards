@@ -1,165 +1,200 @@
+// app.js — 多店铺服务卡片 + 竞品雷达平台
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const { db, stmts, propDir, readPropData, writePropData, initPropertyData, TYPE_MODULES } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'data');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const JWT_SECRET = process.env.JWT_SECRET || 'service-cards-secret-key';
+const FEATURE_RADAR = process.env.FEATURE_RADAR === 'true';
 
-const ADMIN_USER = 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const VALID_MODULES = ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips', 'facilities', 'business', 'nearby'];
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 业态 → 默认模块映射
-const TYPE_MODULES = {
-  homestay:   ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips', 'messages'],
-  hotel:      ['homestay', 'routes', 'food', 'tips', 'messages', 'facilities', 'business'],
-  apartment:  ['homestay', 'guide', 'routes', 'tips', 'messages', 'facilities', 'nearby'],
-};
-
-// ===== Shared helpers =====
-function readData(filename) {
-  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, filename), 'utf-8'));
+// ====== JWT 中间件 ======
+function authRequired(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: '请先登录' });
+  try { req.user = jwt.verify(auth.slice(7), JWT_SECRET); next(); }
+  catch (e) { return res.status(401).json({ error: '登录过期' }); }
 }
 
-function writeData(filename, data) {
-  fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2));
+function adminRequired(req, res, next) {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: '需要管理员权限' });
+  next();
 }
 
-// ===== Image upload =====
+function propertyOwner(req, res, next) {
+  const prop = stmts.findBySlug.get(req.params.slug);
+  if (!prop) return res.status(404).json({ error: '店铺不存在' });
+  if (req.user.role === 'admin' || prop.owner_user_id === req.user.id) {
+    req.property = prop;
+    return next();
+  }
+  return res.status(403).json({ error: '无此店铺权限' });
+}
+
+function logAction(userId, propSlug, action, details) {
+  try { stmts.insertLog.run(userId, propSlug, action, details ? JSON.stringify(details) : null); } catch (e) {}
+}
+
+// Multer
 const storage = multer.diskStorage({
-  destination: UPLOADS_DIR,
+  destination: path.join(__dirname, 'uploads'),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
+  },
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (_r, file, cb) => cb(null, ['.jpg','.jpeg','.png','.webp'].includes(path.extname(file.originalname).toLowerCase())) });
+
+// ====== Auth API ======
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = stmts.findByUsername.get(username);
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: '用户名或密码错误' });
+  stmts.updateLastLogin.run(user.id);
+  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  logAction(user.id, null, 'login', null);
+  res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+});
+
+app.post('/api/auth/register', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password || username.length < 2 || password.length < 4) return res.status(400).json({ error: '用户名≥2位，密码≥4位' });
+  if (stmts.findByUsername.get(username)) return res.status(409).json({ error: '用户名已存在' });
+  const r = stmts.createUser.run(username, bcrypt.hashSync(password, 10), 'owner');
+  const token = jwt.sign({ id: r.lastInsertRowid, username, role: 'owner' }, JWT_SECRET, { expiresIn: '7d' });
+  logAction(r.lastInsertRowid, null, 'register', { username });
+  res.json({ token, user: { id: r.lastInsertRowid, username, role: 'owner' } });
+});
+
+// ====== 总后台 API ======
+app.get('/api/admin/properties', authRequired, adminRequired, (_req, res) => {
+  res.json(stmts.allProperties.all());
+});
+
+app.post('/api/admin/properties', authRequired, adminRequired, (req, res) => {
+  const { slug, name, property_type, owner_user_id, contact_phone, contact_wechat } = req.body;
+  if (!slug || !name) return res.status(400).json({ error: 'slug 和 name 必填' });
+  if (stmts.findBySlug.get(slug)) return res.status(409).json({ error: 'slug 已存在' });
+  const mods = JSON.stringify(TYPE_MODULES[property_type] || TYPE_MODULES.homestay);
+  stmts.createProperty.run(slug, name, property_type || 'homestay', owner_user_id || null, contact_phone || '', contact_wechat || '', mods);
+  initPropertyData(slug, property_type || 'homestay');
+  logAction(req.user.id, slug, 'create_property', { name, type: property_type });
+  res.json({ success: true, slug });
+});
+
+app.delete('/api/admin/properties/:id', authRequired, adminRequired, (req, res) => {
+  stmts.deleteProperty.run(req.params.id);
+  res.json({ success: true });
+});
+
+app.get('/api/admin/users', authRequired, adminRequired, (_req, res) => {
+  res.json(db.prepare('SELECT id,username,role,created_at,last_login FROM users ORDER BY created_at DESC').all());
+});
+
+app.get('/api/admin/logs', authRequired, adminRequired, (_req, res) => {
+  res.json(stmts.getLogs.all());
+});
+
+// ====== 店铺数据 API（客人端，无需认证） ======
+app.get('/api/p/:slug/modules', (req, res) => {
+  const prop = stmts.findBySlug.get(req.params.slug);
+  if (!prop) return res.status(404).json({ error: '店铺不存在' });
+  let mods = [];
+  try { mods = JSON.parse(prop.enabled_modules || '[]'); } catch (e) { mods = TYPE_MODULES.homestay; }
+  res.json({ propertyType: prop.property_type, modules: mods, name: prop.name });
+});
+
+app.get('/api/p/:slug/:module', (req, res) => {
+  const { slug, module } = req.params;
+  const prop = stmts.findBySlug.get(slug);
+  if (!prop) return res.status(404).json({ error: '店铺不存在' });
+
+  if (module === 'messages') {
+    const data = readPropData(slug, 'messages') || [];
+    return res.json(Array.isArray(data) ? data.slice(-50) : []);
   }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) {
-      cb(null, true);
-    } else {
-      cb(new Error('仅支持 jpg/png/webp 格式'));
-    }
+  if (module === 'homestay' || module === 'products') {
+    const data = readPropData(slug, module) || {};
+    if (module === 'products') return res.json({ items: (data.items || []).filter(p => p.active !== false) });
+    return res.json(data);
   }
+  res.json(readPropData(slug, module) || {});
 });
 
-app.use(express.json());
-app.use('/uploads', express.static(UPLOADS_DIR));
-
-// 返回当前启用的模块列表
-app.get('/api/modules', (_req, res) => {
-  const info = readData('homestay.json');
-  const modules = info.enabledModules || TYPE_MODULES[info.propertyType] || TYPE_MODULES.homestay;
-  res.json({ propertyType: info.propertyType || 'homestay', modules });
-});
-
-// ====== Guest API (no auth) ======
-app.get('/api/homestay', (_req, res) => res.json(readData('homestay.json')));
-app.get('/api/guide', (_req, res) => res.json(readData('guide.json')));
-app.get('/api/attractions', (_req, res) => res.json(readData('attractions.json')));
-app.get('/api/routes', (_req, res) => res.json(readData('routes.json')));
-app.get('/api/food', (_req, res) => res.json(readData('food.json')));
-
-app.get('/api/products', (_req, res) => {
-  const data = readData('products.json');
-  res.json({ items: data.items.filter(p => p.active) });
-});
-
-app.get('/api/tips', (_req, res) => res.json(readData('tips.json')));
-app.get('/api/facilities', (_req, res) => res.json(readData('facilities.json')));
-app.get('/api/business', (_req, res) => res.json(readData('business.json')));
-app.get('/api/nearby', (_req, res) => res.json(readData('nearby.json')));
-
-app.get('/api/messages', (_req, res) => {
-  const data = readData('messages.json');
-  res.json(data.slice(-50));
-});
-
-app.post('/api/messages', (req, res) => {
+app.post('/api/p/:slug/messages', (req, res) => {
+  const { slug } = req.params;
   const { content } = req.body;
-  if (!content || !content.trim()) return res.status(400).json({ error: '留言内容不能为空' });
-  const messages = readData('messages.json');
-  const msg = { id: 'm' + Date.now(), content: content.trim(), createdAt: new Date().toISOString() };
-  messages.push(msg);
-  writeData('messages.json', messages);
-  res.json({ success: true, message: msg });
+  if (!content || !content.trim()) return res.status(400).json({ error: '内容不能为空' });
+  const msgs = readPropData(slug, 'messages') || [];
+  msgs.push({ id: 'm' + Date.now(), content: content.trim(), createdAt: new Date().toISOString() });
+  writePropData(slug, 'messages', msgs);
+  res.json({ success: true });
 });
 
-// ====== Admin auth middleware ======
-function basicAuth(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Basic ')) {
-    res.set('WWW-Authenticate', 'Basic realm="Homestay Admin"');
-    return res.status(401).send('需要登录');
-  }
-  const [user, pass] = Buffer.from(auth.slice(6), 'base64').toString().split(':');
-  if (user === ADMIN_USER && pass === ADMIN_PASSWORD) return next();
-  res.set('WWW-Authenticate', 'Basic realm="Homestay Admin"');
-  res.status(401).send('用户名或密码错误');
-}
-
-// ====== Admin API (with auth) ======
-app.post('/api/admin/upload', basicAuth, upload.single('image'), (req, res) => {
+// ====== 店铺后台 API（需 JWT + owner） ======
+app.post('/api/p/:slug/admin/upload', authRequired, propertyOwner, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未选择文件' });
   res.json({ url: '/uploads/' + req.file.filename });
 });
 
-app.get('/api/admin/:module', basicAuth, (req, res) => {
-  const mod = req.params.module;
-  if (mod === 'messages') return res.json(readData('messages.json'));
-  if (!VALID_MODULES.includes(mod)) return res.status(404).json({ error: '模块不存在' });
-  res.json(readData(mod + '.json'));
+app.get('/api/p/:slug/admin/:module', authRequired, propertyOwner, (req, res) => {
+  const { slug, module } = req.params;
+  if (module === 'messages') return res.json(readPropData(slug, 'messages') || []);
+  res.json(readPropData(slug, module) || {});
 });
 
-app.put('/api/admin/:module', basicAuth, (req, res) => {
-  const mod = req.params.module;
-  if (mod === 'modules') {
-    // 管理启用模块列表
+app.put('/api/p/:slug/admin/:module', authRequired, propertyOwner, (req, res) => {
+  const { slug, module } = req.params;
+  if (module === 'modules') {
     const { enabledModules, propertyType } = req.body;
-    const info = readData('homestay.json');
-    if (enabledModules) info.enabledModules = enabledModules;
+    if (enabledModules) stmts.updatePropertyModules.run(JSON.stringify(enabledModules), slug);
     if (propertyType) {
+      stmts.updatePropertyType.run(propertyType, slug);
+      const info = readPropData(slug, 'homestay') || {};
       info.propertyType = propertyType;
-      // 切换业态时自动重置为默认模块
-      if (!enabledModules) info.enabledModules = [...(TYPE_MODULES[propertyType] || TYPE_MODULES.homestay)];
+      writePropData(slug, 'homestay', info);
     }
-    writeData('homestay.json', info);
-    return res.json({ success: true, enabledModules: info.enabledModules, propertyType: info.propertyType });
+    logAction(req.user.id, slug, 'update_modules', { modules: enabledModules, type: propertyType });
+    return res.json({ success: true });
   }
-  if (!VALID_MODULES.includes(mod)) return res.status(404).json({ error: '模块不存在' });
-  writeData(mod + '.json', req.body);
+  writePropData(slug, module, req.body);
+  logAction(req.user.id, slug, 'update_' + module, null);
   res.json({ success: true });
 });
 
-app.delete('/api/admin/messages/:id', basicAuth, (req, res) => {
-  const messages = readData('messages.json');
-  const idx = messages.findIndex(m => m.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: '留言不存在' });
-  messages.splice(idx, 1);
-  writeData('messages.json', messages);
+app.delete('/api/p/:slug/admin/messages/:id', authRequired, propertyOwner, (req, res) => {
+  const msgs = readPropData(req.params.slug, 'messages') || [];
+  const idx = msgs.findIndex(m => m.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: '不存在' });
+  msgs.splice(idx, 1);
+  writePropData(req.params.slug, 'messages', msgs);
   res.json({ success: true });
 });
 
-// ====== Admin static pages (with auth) ======
-app.get('/admin', basicAuth, (_req, res) => {
-  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
-});
-app.use('/admin', basicAuth, express.static(path.join(__dirname, 'admin')));
+// ====== 静态页面 ======
+// 总后台
+app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
-// ====== Guest static pages (no auth) ======
+// 店铺后台
+app.get('/p/:slug/admin', (_req, res) => res.sendFile(path.join(__dirname, 'admin', 'property-admin.html')));
+
+// 店铺客人端
+app.get('/p/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'property.html')));
+
+// 平台首页
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ====== Start ======
 app.listen(PORT, () => {
-  const isDefault = ADMIN_PASSWORD === 'admin123';
-  console.log(`🏡 民宿服务卡片: http://localhost:${PORT}`);
-  console.log(`⚙️  后台管理:     http://localhost:${PORT}/admin`);
-  console.log(`   账号: admin  密码: ${ADMIN_PASSWORD}${isDefault ? ' (默认)' : ''}`);
+  console.log(`🏡 服务卡片平台: http://localhost:${PORT}`);
+  console.log(`   总后台 /admin      | admin/admin123`);
+  console.log(`   店铺页 /p/店铺名   | 后台 /p/店铺名/admin`);
+  if (FEATURE_RADAR) console.log(`   🔮 竞品雷达 已启用`);
+  console.log(`   管理API /api/admin | 创建店铺 API 就绪`);
 });

@@ -1,0 +1,18 @@
+{
+  "propertyType": "homestay",
+  "name": "shanzhumi",
+  "logo": "",
+  "coverImage": "",
+  "description": "",
+  "tags": [],
+  "enabledModules": [
+    "homestay",
+    "guide",
+    "attractions",
+    "routes",
+    "food",
+    "products",
+    "tips",
+    "messages"
+  ]
+}
