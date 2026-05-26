@@ -41,6 +41,18 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now','localtime'))
   );
 
+  CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    store_name TEXT NOT NULL,
+    property_type TEXT DEFAULT 'homestay',
+    phone TEXT,
+    wechat TEXT,
+    status TEXT DEFAULT 'pending',
+    admin_note TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+
   CREATE TABLE IF NOT EXISTS error_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
@@ -69,6 +81,12 @@ const stmts = {
   updatePropertyType: db.prepare('UPDATE properties SET property_type = ? WHERE slug = ?'),
   updatePropertyInfo: db.prepare('UPDATE properties SET name=?, property_type=?, contact_phone=?, contact_wechat=? WHERE slug=?'),
   userProperties: db.prepare('SELECT * FROM properties WHERE owner_user_id = ? AND is_active = 1'),
+
+  // Applications
+  createApplication: db.prepare('INSERT INTO applications (name, store_name, property_type, phone, wechat) VALUES (?,?,?,?,?)'),
+  allApplications: db.prepare('SELECT * FROM applications ORDER BY created_at DESC'),
+  pendingApplications: db.prepare("SELECT * FROM applications WHERE status = 'pending' ORDER BY created_at DESC"),
+  updateApplication: db.prepare('UPDATE applications SET status=?, admin_note=? WHERE id=?'),
 
   // Usage logs
   insertLog: db.prepare('INSERT INTO usage_logs (user_id, property_slug, action, details) VALUES (?,?,?,?)'),

@@ -69,6 +69,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
   <h2>⚙️ 平台管理</h2>
   <a data-tab="overview" class="active" onclick="switchTab('overview')">📊 概览</a>
   <a data-tab="properties" onclick="switchTab('properties')">🏡 店铺管理</a>
+  <a data-tab="applications" onclick="switchTab('applications')">📩 入驻申请</a>
   <a data-tab="users" onclick="switchTab('users')">👥 用户管理</a>
   <a data-tab="logs" onclick="switchTab('logs')">📋 操作日志</a>
   <a onclick="logout()" style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">🚪 退出登录</a>
@@ -129,7 +130,7 @@ function switchTab(name) {
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   const link = document.querySelector(`[data-tab="${name}"]`);
   if (link) link.classList.add('active');
-  const loaders = { overview: loadOverview, properties: loadProperties, users: loadUsers, logs: loadLogs };
+  const loaders = { overview: loadOverview, properties: loadProperties, applications: loadApplications, users: loadUsers, logs: loadLogs };
   if (loaders[name]) loaders[name]();
 }
 
@@ -238,6 +239,64 @@ window.deleteProperty = async (id, slug) => {
   await api('DELETE', '/api/admin/properties/' + id);
   toast('已删除');
   loadProperties();
+};
+
+// ====== 入驻申请 ======
+async function loadApplications() {
+  const apps = await api('GET', '/api/admin/applications');
+  const pending = apps.filter(a => a.status === 'pending').length;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <h1 style="margin-bottom:0;">📩 入驻申请 ${pending ? '<span style="font-size:14px;color:#e65100;">（'+pending+' 条待审核）</span>' : ''}</h1>
+      <a href="/apply" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">🔗 申请页面</a>
+    </div>
+    <table>
+      <thead><tr><th>申请人</th><th>店铺名</th><th>业态</th><th>手机</th><th>微信</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+      <tbody>
+        ${apps.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">暂无申请</td></tr>' : ''}
+        ${apps.map(a => {
+          const statusMap = { pending: '⏳ 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
+          return `<tr>
+            <td>${a.name}</td><td><strong>${a.store_name}</strong></td>
+            <td>${a.property_type}</td><td>${a.phone||'-'}</td><td>${a.wechat||'-'}</td>
+            <td>${statusMap[a.status]||a.status}</td>
+            <td style="font-size:12px;color:var(--muted);">${a.admin_note||''}</td>
+            <td>
+              ${a.status === 'pending' ? `
+                <div class="gap">
+                  <button class="btn btn-sm btn-primary" onclick="approveApp(${a.id})">✅ 通过</button>
+                  <button class="btn btn-sm btn-danger" onclick="rejectApp(${a.id})">❌ 拒绝</button>
+                </div>` : '-'}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div id="approveResult" style="margin-top:16px;"></div>
+  `;
+}
+
+window.approveApp = async (id) => {
+  if (!confirm('审核通过后将自动创建店铺和店老板账号，确定吗？')) return;
+  const r = await api('PUT', '/api/admin/applications/' + id, { status: 'approved' });
+  if (r.success) {
+    document.getElementById('approveResult').innerHTML = `
+      <div style="background:#f0fdfa;border:1px solid #0d9488;border-radius:12px;padding:20px;margin-top:16px;">
+        <strong>✅ 审核通过！账号已自动创建：</strong><br>
+        用户名: <code style="font-size:16px;">${r.username}</code><br>
+        密码: <code style="font-size:16px;">${r.password}</code><br>
+        店铺: <a href="/p/${r.slug}" target="_blank">/p/${r.slug}</a> — ${r.store_name}<br>
+        管理: <a href="/p/${r.slug}/admin" target="_blank">/p/${r.slug}/admin</a>
+      </div>`;
+    loadApplications();
+  }
+};
+
+window.rejectApp = async (id) => {
+  const note = prompt('拒绝原因（可选）:');
+  await api('PUT', '/api/admin/applications/' + id, { status: 'rejected', admin_note: note || '' });
+  loadApplications();
 };
 
 // ====== 用户管理 ======

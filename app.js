@@ -62,6 +62,14 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
+// 老板申请入驻（无需登录）
+app.post('/api/apply', (req, res) => {
+  const { name, store_name, property_type, phone, wechat } = req.body;
+  if (!name || !store_name) return res.status(400).json({ error: '姓名和店名必填' });
+  stmts.createApplication.run(name, store_name, property_type || 'homestay', phone || '', wechat || '');
+  res.json({ success: true, message: '申请已提交，我们审核后会联系您' });
+});
+
 app.post('/api/auth/register', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password || username.length < 2 || password.length < 4) return res.status(400).json({ error: '用户名≥2位，密码≥4位' });
@@ -99,6 +107,47 @@ app.get('/api/admin/users', authRequired, adminRequired, (_req, res) => {
 
 app.get('/api/admin/logs', authRequired, adminRequired, (_req, res) => {
   res.json(stmts.getLogs.all());
+});
+
+app.get('/api/admin/applications', authRequired, adminRequired, (_req, res) => {
+  res.json(stmts.allApplications.all());
+});
+
+// 审核通过 → 自动创建店铺 + 分配账号
+app.put('/api/admin/applications/:id', authRequired, adminRequired, (req, res) => {
+  const { status, admin_note } = req.body;
+  const app = db.prepare('SELECT * FROM applications WHERE id = ?').get(req.params.id);
+  if (!app) return res.status(404).json({ error: '申请不存在' });
+
+  stmts.updateApplication.run(status || 'approved', admin_note || '', req.params.id);
+
+  if (status === 'approved') {
+    // 生成 slug
+    const slug = app.store_name.replace(/[^一-龥a-zA-Z0-9]/g, '').toLowerCase().substring(0, 20) || 'store' + Date.now();
+    // 生成随机账号
+    const username = 'store_' + Date.now().toString(36);
+    const password = Math.random().toString(36).slice(-8);
+    const hash = bcrypt.hashSync(password, 10);
+
+    try {
+      // 创建用户
+      const ownerId = stmts.createUser.run(username, hash, 'owner').lastInsertRowid;
+      // 创建店铺
+      if (!stmts.findBySlug.get(slug)) {
+        const mods = JSON.stringify(TYPE_MODULES[app.property_type] || TYPE_MODULES.homestay);
+        stmts.createProperty.run(slug, app.store_name, app.property_type, ownerId, app.phone || '', app.wechat || '', mods);
+        initPropertyData(slug, app.property_type);
+      }
+      stmts.updateApplication.run('approved', '账号: ' + username + ' / 密码: ' + password, req.params.id);
+      logAction(req.user.id, slug, 'approve_application', { applicant: app.name, store: app.store_name });
+      res.json({ success: true, username, password, slug, store_name: app.store_name });
+    } catch (e) {
+      stmts.updateApplication.run('error', e.message, req.params.id);
+      res.status(500).json({ error: e.message });
+    }
+  } else {
+    res.json({ success: true });
+  }
 });
 
 // ====== 店铺数据 API（客人端，无需认证） ======
@@ -187,6 +236,9 @@ app.get('/p/:slug/admin', (_req, res) => res.sendFile(path.join(__dirname, 'admi
 
 // 店铺客人端
 app.get('/p/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'property.html')));
+
+// 申请页面
+app.get('/apply', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'apply.html')));
 
 // 平台首页
 app.use(express.static(path.join(__dirname, 'public')));

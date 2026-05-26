@@ -1,0 +1,17 @@
+{
+  "propertyType": "apartment",
+  "name": "洱海度假公寓",
+  "logo": "",
+  "coverImage": "",
+  "description": "",
+  "tags": [],
+  "enabledModules": [
+    "homestay",
+    "guide",
+    "routes",
+    "tips",
+    "messages",
+    "facilities",
+    "nearby"
+  ]
+}
