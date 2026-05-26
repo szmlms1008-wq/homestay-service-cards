@@ -92,7 +92,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
 <body>
 
 <div class="sidebar" id="sidebar" style="display:none;">
-  <h2>⚙️ 平台管理</h2>
+  <h2>⚙️ 宿说 · 平台管理</h2>
   <a data-tab="overview" class="active" onclick="switchTab('overview')">📊 概览</a>
   <a data-tab="properties" onclick="switchTab('properties')">🏡 店铺管理</a>
   <a data-tab="applications" onclick="switchTab('applications')">📩 入驻申请</a>
@@ -330,7 +330,7 @@ window.copyFromNote = (note, storeName) => {
   const username = parts[0] || '';
   const password = parts[1] || '';
   const base = window.location.origin;
-  const text = `【民宿服务卡片】${storeName} 已开通 🏡
+  const text = `【宿说】${storeName} 已开通 🏡
 
 账号：${username}
 密码：${password}
@@ -340,7 +340,7 @@ window.copyFromNote = (note, storeName) => {
 };
 
 window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
-  const text = `【民宿服务卡片】您的店铺已开通 🏡
+  const text = `【宿说】您的店铺已开通 🏡
 
 📋 登录账号：${username}
 🔑 登录密码：${password}

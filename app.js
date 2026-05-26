@@ -265,7 +265,7 @@ app.get('/apply', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'ap
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
-  console.log(`🏡 服务卡片平台: http://localhost:${PORT}`);
+  console.log(`🏡 宿说 - 让住所替你说: http://localhost:${PORT}`);
   console.log(`   总后台 /admin      | admin/admin123`);
   console.log(`   店铺页 /p/店铺名   | 后台 /p/店铺名/admin`);
   if (FEATURE_RADAR) console.log(`   🔮 竞品雷达 已启用`);
