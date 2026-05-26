@@ -70,19 +70,6 @@ h1 { font-size:24px; color:var(--ink); text-align:center; margin-bottom:4px; }
 </div>
 
 <script>
-const USER = JSON.parse(localStorage.getItem('card_user') || 'null');
-
-// 已登录用户显示快捷入口
-if (USER) {
-  document.getElementById('formCard').innerHTML = `
-    <div class="success">
-      <div class="icon">👋</div>
-      <h2>${USER.username}，欢迎回来</h2>
-      <p>你已经登录了。</p>
-      <a class="btn" href="/admin" style="display:block;text-decoration:none;width:200px;margin:16px auto;">进入后台</a>
-    </div>`;
-}
-
 let currentTab = 'apply';
 
 window.switchTab = function(tab) {
