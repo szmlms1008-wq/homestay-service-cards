@@ -241,7 +241,7 @@ function switchTab(name) {
 async function uploadImage(file) {
   const fd = new FormData();
   fd.append('image', file);
-  const r = await fetch(API + '/api/admin/upload', { method: 'POST', body: fd });
+  const r = await fetch(API + '/upload', { method: 'POST', body: fd });
   if (!r.ok) { toast('上传失败'); return ''; }
   const d = await r.json();
   toast('图片上传成功');
@@ -264,7 +264,7 @@ function bindUpload(selector, hiddenId, previewId) {
 
 // ======== Tab: 民宿简介 ========
 async function loadHomestay() {
-  const d = await fetchJSON('/api/admin/homestay');
+  const d = await fetchJSON('/homestay');
   const types = [['homestay','🏡 民宿'],['hotel','🏨 酒店'],['apartment','🏢 公寓']];
   document.getElementById('mainContent').innerHTML = `
     <h1>🏡 基本信息</h1>
@@ -301,7 +301,7 @@ async function saveHomestay() {
     description: document.getElementById('f_description').value,
     tags: document.getElementById('f_tags').value.split('\n').map(t => t.trim()).filter(t => t)
   };
-  await fetch(API + '/api/admin/homestay', {
+  await fetch(API + '/homestay', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -354,7 +354,7 @@ function saveBtnRow(listId, module, wrapperKey, afterSave) {
   return `<div style="margin-top:14px;display:flex;gap:12px;">
     <button class="btn btn-primary" onclick="
       const items = collectItems('${listId}');
-      fetch(API + '/api/admin/${module}', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({${wrapperKey}:items})}).then(()=>{toast('保存成功');${afterSave || 'loadTab(\''+module+'\')'};});
+      fetch(API + '/${module}', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({${wrapperKey}:items})}).then(()=>{toast('保存成功');${afterSave || 'loadTab(\''+module+'\')'};});
     ">💾 保存</button>
     <button class="btn btn-outline" onclick="makeAddBtn('${listId}', ${module}AddTemplate)">➕ 添加</button>
   </div>`;
@@ -373,7 +373,7 @@ function guideAddTemplate(n) {
 }
 
 async function loadGuide() {
-  const d = await fetchJSON('/api/admin/guide');
+  const d = await fetchJSON('/guide');
   let html = `<h1>🚪 入住导引</h1><div class="dyn-list" id="guideList">`;
   d.steps.forEach((s, i) => {
     html += `<div class="dyn-item">
@@ -404,7 +404,7 @@ function attrAddTemplate(n) {
 }
 
 async function loadAttractions() {
-  const d = await fetchJSON('/api/admin/attractions');
+  const d = await fetchJSON('/attractions');
   let html = `<h1>🗺️ 景区攻略</h1><div class="dyn-list" id="attList">`;
   d.items.forEach((a, i) => {
     html += `<div class="dyn-item">
@@ -434,7 +434,7 @@ async function loadAttractions() {
 
 async function saveAttractions() {
   const items = collectItems('attList');
-  await fetch(API + '/api/admin/attractions', {
+  await fetch(API + '/attractions', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items, guideMapImage: document.getElementById('f_guideMapImage').value })
@@ -452,7 +452,7 @@ function routesAddTemplate(n) {
 }
 
 async function loadRoutes() {
-  const d = await fetchJSON('/api/admin/routes');
+  const d = await fetchJSON('/routes');
   let html = `<h1>📍 到达路线</h1><div class="dyn-list" id="routeList">`;
   d.items.forEach((r, i) => {
     html += `<div class="dyn-item">
@@ -479,7 +479,7 @@ function foodAddTemplate(n) {
 }
 
 async function loadFood() {
-  const d = await fetchJSON('/api/admin/food');
+  const d = await fetchJSON('/food');
   let html = `<h1>🍜 周边小吃</h1><div class="dyn-list" id="foodList">`;
   d.items.forEach((f, i) => {
     html += `<div class="dyn-item">
@@ -499,7 +499,7 @@ async function loadFood() {
 
 // ======== Tab: 民宿好物 ========
 async function loadProducts() {
-  const d = await fetchJSON('/api/admin/products');
+  const d = await fetchJSON('/products');
   let html = `<h1>🛍️ 民宿好物</h1><div class="dyn-list" id="prodList">`;
   d.items.forEach((p, i) => {
     html += `<div class="dyn-item" data-prod-idx="${i}">
@@ -553,7 +553,7 @@ async function saveProducts() {
     item.active = toggle ? toggle.classList.contains('on') : true;
     items.push(item);
   });
-  await fetch(API + '/api/admin/products', {
+  await fetch(API + '/products', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items })
@@ -606,7 +606,7 @@ async function productImageUpload(input) {
 
 // ======== Tab: 温馨提示 ========
 async function loadTips() {
-  const d = await fetchJSON('/api/admin/tips');
+  const d = await fetchJSON('/tips');
   document.getElementById('mainContent').innerHTML = `
     <h1>💡 温馨提示</h1>
     <div class="fg"><label>WiFi 名称</label><input type="text" id="f_wifi" value="${esc(d.wifi)}"></div>
@@ -626,7 +626,7 @@ async function saveTips() {
     emergencyPhone: document.getElementById('f_emergencyPhone').value,
     notices: document.getElementById('f_notices').value.split('\n').map(t => t.trim()).filter(t => t)
   };
-  await fetch(API + '/api/admin/tips', {
+  await fetch(API + '/tips', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -636,7 +636,7 @@ async function saveTips() {
 
 // ======== Tab: 留言管理 ========
 async function loadMessages() {
-  const d = await fetchJSON('/api/admin/messages');
+  const d = await fetchJSON('/messages');
   let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
     <h1 style="margin-bottom:0;">📝 留言管理 <span style="font-size:14px;color:var(--muted);font-weight:400;">（共 ${d.length} 条）</span></h1>
     <button class="btn btn-outline btn-sm" onclick="loadMessages()">🔄 刷新</button>
@@ -660,7 +660,7 @@ async function loadMessages() {
 }
 
 async function deleteMsg(id) {
-  await fetch(API + '/api/admin/messages/' + id, { method: 'DELETE' });
+  await fetch(API + '/messages/' + id, { method: 'DELETE' });
   toast('留言已删除');
   loadMessages();
 }
@@ -673,7 +673,7 @@ function facilitiesAddTemplate(n) {
 }
 
 async function loadFacilities() {
-  const d = await fetchJSON('/api/admin/facilities');
+  const d = await fetchJSON('/facilities');
   let html = `<h1>🏊 酒店设施</h1><div class="dyn-list" id="facList">`;
   d.items.forEach((f, i) => {
     html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
@@ -693,7 +693,7 @@ function businessAddTemplate(n) {
 }
 
 async function loadBusiness() {
-  const d = await fetchJSON('/api/admin/business');
+  const d = await fetchJSON('/business');
   let html = `<h1>💼 商务服务</h1><div class="dyn-list" id="bizList">`;
   d.items.forEach((b, i) => {
     html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
@@ -717,7 +717,7 @@ function nearbyAddTemplate(n) {
 }
 
 async function loadNearby() {
-  const d = await fetchJSON('/api/admin/nearby');
+  const d = await fetchJSON('/nearby');
   let html = `<h1>🛒 周边便利</h1><div class="dyn-list" id="nearList">`;
   d.items.forEach((n, i) => {
     html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
@@ -751,7 +751,7 @@ const ALL_MODULES = [
 const TYPE_NAMES = { homestay: '🏡 民宿', hotel: '🏨 酒店', apartment: '🏢 公寓' };
 
 async function loadModules() {
-  const info = await fetchJSON('/api/admin/homestay');
+  const info = await fetchJSON('/homestay');
   const enabled = info.enabledModules || [];
 
   let html = `
@@ -797,12 +797,12 @@ function toggleModule(el) {
 
 async function switchType() {
   const type = document.getElementById('modType').value;
-  const info = await fetchJSON('/api/admin/homestay');
+  const info = await fetchJSON('/homestay');
   // 获取该业态的默认模块
   const defaults = {'homestay':['homestay','guide','attractions','routes','food','products','tips','messages'],'hotel':['homestay','routes','food','tips','messages','facilities','business'],'apartment':['homestay','guide','routes','tips','messages','facilities','nearby']};
   const modules = defaults[type] || defaults.homestay;
   // 更新后端
-  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({propertyType:type,enabledModules:modules})});
+  await fetch(API + '/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({propertyType:type,enabledModules:modules})});
   toast('已切换到 ' + (TYPE_NAMES[type]||type) + '，模块已重置为默认');
   loadModules();
 }
@@ -811,7 +811,7 @@ async function saveModules() {
   const enabled = [];
   document.querySelectorAll('.toggle.on[data-mod]').forEach(t => enabled.push(t.dataset.mod));
   const type = document.getElementById('modType').value;
-  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type})});
+  await fetch(API + '/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type})});
   toast('模块设置已保存（' + enabled.length + ' 个模块启用）');
 }
 
@@ -878,7 +878,7 @@ async function submitRadarSignup() {
   const phone = document.getElementById('radarPhone').value.trim();
   if (!phone) { document.getElementById('radarMsg').textContent = '请输入联系方式'; return; }
   // 保存到留言系统
-  await fetch(API + '/api/messages', {
+  await fetch('/api/p/' + SLUG + '/messages', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({content: '【竞品雷达预约】' + phone})

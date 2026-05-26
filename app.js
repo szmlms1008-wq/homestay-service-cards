@@ -91,7 +91,7 @@ app.post('/api/admin/properties', authRequired, adminRequired, (req, res) => {
   if (stmts.findBySlug.get(slug)) return res.status(409).json({ error: 'slug 已存在' });
   const mods = JSON.stringify(TYPE_MODULES[property_type] || TYPE_MODULES.homestay);
   stmts.createProperty.run(slug, name, property_type || 'homestay', owner_user_id || null, contact_phone || '', contact_wechat || '', mods);
-  initPropertyData(slug, property_type || 'homestay');
+  initPropertyData(slug, property_type || 'homestay', name);
   logAction(req.user.id, slug, 'create_property', { name, type: property_type });
   res.json({ success: true, slug });
 });
@@ -136,7 +136,7 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, (req, res) =
       if (!stmts.findBySlug.get(slug)) {
         const mods = JSON.stringify(TYPE_MODULES[app.property_type] || TYPE_MODULES.homestay);
         stmts.createProperty.run(slug, app.store_name, app.property_type, ownerId, app.phone || '', app.wechat || '', mods);
-        initPropertyData(slug, app.property_type);
+        initPropertyData(slug, app.property_type, app.store_name);
       }
       stmts.updateApplication.run('approved', '账号: ' + username + ' / 密码: ' + password, req.params.id);
       logAction(req.user.id, slug, 'approve_application', { applicant: app.name, store: app.store_name });

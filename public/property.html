@@ -579,7 +579,7 @@ function esc(s) {
 
 // === 1. Homestay ===
 async function loadHomestay() {
-  const d = await getJSON('/api/homestay');
+  const d = await getJSON('/homestay');
   document.title = d.name + ' - 服务卡片';
   if (d.coverImage) {
     document.getElementById('heroBg').innerHTML = `<img src="${esc(d.coverImage)}" alt="">`;
@@ -596,7 +596,7 @@ async function loadHomestay() {
 
 // === 2. Guide ===
 async function loadGuide() {
-  const d = await getJSON('/api/guide');
+  const d = await getJSON('/guide');
   document.getElementById('guideSteps').innerHTML = d.steps.map((s, i) => `
     <div style="display:flex;gap:18px;align-items:flex-start;">
       <div class="step-number">${String(i+1).padStart(2,'0')}</div>
@@ -611,7 +611,7 @@ async function loadGuide() {
 
 // === 3. Attractions ===
 async function loadAttractions() {
-  const d = await getJSON('/api/attractions');
+  const d = await getJSON('/attractions');
   document.getElementById('attrList').innerHTML = d.items.map(a => `
     <div class="attr-card">
       <div class="img-placeholder">
@@ -633,7 +633,7 @@ async function loadAttractions() {
 
 // === 4. Routes ===
 async function loadRoutes() {
-  const d = await getJSON('/api/routes');
+  const d = await getJSON('/routes');
   document.getElementById('routeList').innerHTML = d.items.map(r => `
     <div class="card">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
@@ -665,7 +665,7 @@ function openMapNav(lat, lng, name) {
 
 // === 5. Food ===
 async function loadFood() {
-  const d = await getJSON('/api/food');
+  const d = await getJSON('/food');
   const icons = ['🥘','🍜','🫘','🥩','🍲','🥟','🍛','🍢'];
   document.getElementById('foodList').innerHTML = d.items.map((f, i) => `
     <div class="card">
@@ -688,7 +688,7 @@ async function loadFood() {
 let productModalData = null;
 
 async function loadProducts() {
-  const d = await getJSON('/api/products');
+  const d = await getJSON('/products');
   document.getElementById('productList').innerHTML = d.items.map(p => `
     <div class="product-card">
       <div class="product-img">
@@ -732,7 +732,7 @@ document.getElementById('buyModal').addEventListener('click', function(e) {
 
 // === 7. Tips ===
 async function loadTips() {
-  const d = await getJSON('/api/tips');
+  const d = await getJSON('/tips');
   document.getElementById('tipsContent').innerHTML = `
     <div class="tip-row">
       <span style="font-size:24px;">📶</span>
@@ -755,7 +755,7 @@ async function loadTips() {
 
 // === 8. Messages ===
 async function loadMessages() {
-  const d = await getJSON('/api/messages');
+  const d = await getJSON('/messages');
   const texts = d.map(m => '"' + esc(m.content) + '"').join('  ·  ');
   const track = document.getElementById('marqueeTrack');
   track.textContent = texts + (texts ? '  ·  ' + texts : '');
@@ -765,7 +765,7 @@ async function submitMsg() {
   const inp = document.getElementById('msgInput');
   const text = inp.value.trim();
   if (!text) return;
-  const r = await fetch(API + '/api/messages', {
+  const r = await fetch(API + '/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ content: text })
@@ -785,7 +785,7 @@ document.getElementById('msgInput').addEventListener('keydown', function(e) {
 
 // === 7. Facilities ===
 async function loadFacilities() {
-  const d = await getJSON('/api/facilities');
+  const d = await getJSON('/facilities');
   document.getElementById('facilityList').innerHTML = d.items.map(f => `
     <div class="card" style="display:flex;align-items:flex-start;gap:12px;">
       <span style="font-size:28px;">${esc(f.name.split(' ')[0] || '🏊')}</span>
@@ -797,7 +797,7 @@ async function loadFacilities() {
 
 // === 8. Business ===
 async function loadBusiness() {
-  const d = await getJSON('/api/business');
+  const d = await getJSON('/business');
   document.getElementById('bizList').innerHTML = d.items.map(b => `
     <div class="card" style="display:flex;align-items:flex-start;gap:12px;">
       <span style="font-size:28px;">${esc(b.name.split(' ')[0] || '💼')}</span>
@@ -809,7 +809,7 @@ async function loadBusiness() {
 
 // === 9. Nearby ===
 async function loadNearby() {
-  const d = await getJSON('/api/nearby');
+  const d = await getJSON('/nearby');
   const icons = ['🏪','🚇','🏥','💊','🏦','🏫','🛍️','🍎'];
   document.getElementById('nearList').innerHTML = d.items.map((n, i) => `
     <div class="card">
@@ -833,7 +833,7 @@ async function init() {
     // 获取模块列表
     let modules = null;
     try {
-      const modResp = await getJSON('/api/modules');
+      const modResp = await getJSON('/modules');
       modules = modResp.modules;
       // 根据业态更新页面标题
       const typeNames = { homestay: '民宿', hotel: '酒店', apartment: '公寓' };
