@@ -1,0 +1,18 @@
+{
+  "propertyType": "hotel",
+  "name": "1234",
+  "logo": "",
+  "coverImage": "",
+  "description": "",
+  "address": "",
+  "tags": [],
+  "enabledModules": [
+    "homestay",
+    "routes",
+    "food",
+    "tips",
+    "messages",
+    "facilities",
+    "business"
+  ]
+}
