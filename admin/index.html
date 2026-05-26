@@ -359,9 +359,39 @@ window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
 };
 
 window.rejectApp = async (id) => {
-  const note = prompt('拒绝原因（可选）:');
+  const note = prompt('拒绝原因:');
+  if (note === null) return; // 点了取消
   await api('PUT', '/api/admin/applications/' + id, { status: 'rejected', admin_note: note || '' });
+
+  // 获取申请信息用于复制通知
+  const apps = await api('GET', '/api/admin/applications');
+  const app = apps.find(a => a.id === id);
+  if (app) {
+    const base = window.location.origin;
+    const text = `【宿说】关于您的入驻申请
+
+${app.name} 您好，您在「宿说」提交的店铺「${app.store_name}」入驻申请暂未通过。
+
+💬 原因：${note}
+
+如有疑问，可联系客服沟通。`;
+    document.getElementById('approveResult').innerHTML = `
+      <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:10px;padding:14px 16px;margin-top:12px;">
+        <span style="font-weight:600;color:#c62828;">❌ 已拒绝 ${app.store_name}</span>
+        <span style="font-size:12px;color:var(--muted);margin-left:8px;">${note}</span>
+        <button class="btn btn-sm btn-danger" onclick="copyToClipboard('${text.replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">📋 复制通知发给商家</button>
+        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
+        <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:6px;"></p>
+      </div>`;
+  }
   loadApplications();
+};
+
+window.copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text.replace(/\\n/g,'\n')).then(() => {
+    const el = document.getElementById('copyMsg');
+    if (el) el.textContent = '✅ 已复制，去微信粘贴发给商家';
+  });
 };
 
 window.showPwChange = () => {
