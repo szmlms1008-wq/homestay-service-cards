@@ -199,6 +199,7 @@ body {
   <a data-tab="nearby" onclick="switchTab('nearby')">🛒 周边便利</a>
   <a data-tab="modules" onclick="switchTab('modules')">⚙️ 模块管理</a>
   <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
+  <a data-tab="radar" onclick="switchTab('radar')" style="color:#d4896a;font-weight:600;">🔮 竞品雷达</a>
 </div>
 
 <div class="main" id="mainContent"></div>
@@ -817,6 +818,69 @@ async function resetModules() {
   toast('已重置为 ' + (TYPE_NAMES[type]||type) + ' 默认（' + modules.length + ' 个模块）');
 }
 
+// ======== Tab: 竞品雷达预告 ========
+async function loadRadar() {
+  document.getElementById('mainContent').innerHTML = `
+    <div style="max-width:560px;">
+      <div style="font-size:56px;margin-bottom:8px;">🔮</div>
+      <h1 style="margin-bottom:8px;">竞品雷达</h1>
+      <p style="font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.7;">
+        实时追踪周边民宿价格变化，自动分析市场竞争态势。
+        帮你回答一个问题：<strong style="color:var(--ink);">隔壁老王今天卖了多少钱？</strong>
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
+        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+          <div style="font-size:28px;margin-bottom:8px;">📊</div>
+          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格实时监控</div>
+          <div style="font-size:13px;color:var(--muted);">美团/途家/小猪三平台同时对比，价格变动实时通知</div>
+        </div>
+        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+          <div style="font-size:28px;margin-bottom:8px;">🎯</div>
+          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">竞争指数分析</div>
+          <div style="font-size:13px;color:var(--muted);">MPI/ARI/RGI 三大指标，一眼看懂你在市场中的位置</div>
+        </div>
+        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+          <div style="font-size:28px;margin-bottom:8px;">📍</div>
+          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">定位搜索竞品</div>
+          <div style="font-size:13px;color:var(--muted);">GPS 定位 + 途家数据，自动发现周边竞品民宿</div>
+        </div>
+        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+          <div style="font-size:28px;margin-bottom:8px;">🌡️</div>
+          <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格温度计</div>
+          <div style="font-size:13px;color:var(--muted);">你的价格在市场里的位置——偏低有优势还是偏高该降价</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:24px;text-align:center;border:1px solid #f59e0b20;">
+        <div style="font-size:18px;font-weight:700;color:#92400e;margin-bottom:6px;">🚀 即将上线 · 内测招募中</div>
+        <p style="font-size:14px;color:#a16207;margin-bottom:16px;line-height:1.6;">
+          我们正在邀请首批民宿老板免费试用竞品雷达。<br>
+          感兴趣的话，留下你的微信号，上线后第一时间通知你。
+        </p>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <input id="radarPhone" type="text" placeholder="请输入微信号或手机号" style="padding:10px 16px;border:1px solid #f59e0b40;border-radius:8px;font-size:14px;width:240px;outline:none;background:#fff;">
+          <button class="btn btn-primary" onclick="submitRadarSignup()" style="background:#92400e;">📩 抢先体验</button>
+        </div>
+        <p id="radarMsg" style="font-size:13px;color:#92400e;margin-top:10px;min-height:20px;"></p>
+      </div>
+    </div>
+  `;
+}
+
+async function submitRadarSignup() {
+  const phone = document.getElementById('radarPhone').value.trim();
+  if (!phone) { document.getElementById('radarMsg').textContent = '请输入联系方式'; return; }
+  // 保存到留言系统
+  await fetch(API + '/api/messages', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({content: '【竞品雷达预约】' + phone})
+  });
+  document.getElementById('radarMsg').textContent = '已收到！上线后我们会第一时间联系你 ✅';
+  document.getElementById('radarPhone').value = '';
+}
+
 // ======== Router ========
 const TAB_LOADERS = {
   homestay: loadHomestay,
@@ -830,7 +894,8 @@ const TAB_LOADERS = {
   business: loadBusiness,
   nearby: loadNearby,
   modules: loadModules,
-  messages: loadMessages
+  messages: loadMessages,
+  radar: loadRadar
 };
 
 let currentTab = 'homestay';
