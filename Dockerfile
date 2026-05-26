@@ -12,4 +12,5 @@ ENV UPLOADS_DIR=/app/persist/uploads
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["npm", "start"]
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]
