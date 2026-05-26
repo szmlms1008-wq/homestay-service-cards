@@ -205,7 +205,7 @@ body {
       <span id="sidebarAdmin" style="display:none;color:#d4896a;font-weight:500;">（管理员）</span>
     </div>
     <a onclick="showPasswordChange()" style="cursor:pointer;">🔑 修改密码</a>
-    <a href="/p/${SLUG}" target="_blank" style="font-size:12px;">👁 预览客人端</a>
+    <a id="previewLink" href="#" target="_blank" style="font-size:12px;">👁 预览客人端</a>
     <a onclick="logout()" style="font-size:12px;color:#c62828;">🚪 退出登录</a>
   </div>
 </div>
@@ -964,6 +964,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (user.role === 'admin') document.getElementById('sidebarAdmin').style.display = '';
     }
   } catch(e) {}
+  // 设置预览链接
+  const previewLink = document.getElementById('previewLink');
+  if (previewLink) previewLink.href = '/p/' + SLUG;
   if (!TOKEN) {
     document.querySelector('.sidebar').style.display = 'none';
     document.getElementById('mainContent').innerHTML = `
