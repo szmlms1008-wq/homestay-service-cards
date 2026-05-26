@@ -261,6 +261,9 @@ app.get('/p/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'public', '
 // 申请页面
 app.get('/apply', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'apply.html')));
 
+// 宣传页（首页）
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+
 // 平台首页
 app.use(express.static(path.join(__dirname, 'public')));
 
