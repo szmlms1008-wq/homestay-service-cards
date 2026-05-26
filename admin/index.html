@@ -63,13 +63,29 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
 .login-wrap .btn { width:100%; padding:12px; font-size:15px; }
 @media (max-width:768px) {
   body { flex-direction:column; }
-  .sidebar { width:100%; display:flex; overflow-x:auto; padding:8px; flex-shrink:0; }
+  .sidebar {
+    width:100%; display:flex; overflow-x:auto;
+    padding:10px 6px 12px;
+    flex-shrink:0; gap:2px;
+    background:var(--card); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+    -webkit-overflow-scrolling:touch;
+  }
   .sidebar h2 { display:none; }
-  .sidebar a { flex-shrink:0; border-left:none; border-bottom:2px solid transparent; padding:8px 12px; font-size:12px; white-space:nowrap; }
-  .sidebar a.active { border-left:none; border-bottom-color:var(--primary); }
-  .main { padding:16px; }
+  .sidebar a {
+    flex-shrink:0; border-left:none; border-bottom:3px solid transparent;
+    padding:8px 13px; font-size:13px; white-space:nowrap;
+    border-radius:8px 8px 0 0; margin-top:4px;
+  }
+  .sidebar a.active {
+    border-left:none; border-bottom-color:var(--primary);
+    background:var(--bg);
+  }
+  .main { padding:16px 12px; }
   .stats { grid-template-columns:repeat(2,1fr); }
-  .login-wrap { margin:40px auto; }
+  .login-wrap { margin:20px auto; }
+  table { font-size:11px; }
+  th, td { padding:6px 8px; }
 }
 </style>
 </head>

@@ -169,16 +169,21 @@ body {
   body { flex-direction: column; }
   .sidebar {
     width: 100%; display: flex; overflow-x: auto;
-    padding: 8px 8px; flex-shrink: 0;
+    padding: 10px 6px 12px; flex-shrink: 0; gap:2px;
+    border-bottom: 1px solid var(--hairline);
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface-card);
+    -webkit-overflow-scrolling: touch;
   }
   .sidebar h2 { display: none; }
   .sidebar a {
     flex-shrink: 0; border-left: none;
-    border-bottom: 2px solid transparent;
-    padding: 8px 14px; font-size: 13px; white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    padding: 8px 13px; font-size: 13px; white-space: nowrap;
+    border-radius: 8px 8px 0 0; margin-top: 4px;
   }
   .sidebar a.active { border-left: none; border-bottom-color: var(--primary); }
-  .main { padding: 18px; }
+  .main { padding: 14px; }
   .fg-row { flex-direction: column; }
 }
 </style>
