@@ -79,6 +79,21 @@ h1 { font-size:24px; color:var(--ink); text-align:center; margin-bottom:4px; }
 <script>
 let currentTab = 'apply';
 
+// URL 参数自动填充
+const params = new URLSearchParams(window.location.search);
+const prefillUser = params.get('u') || '';
+const prefillPass = params.get('p') || '';
+const prefillTab = params.get('t') || '';
+
+if (prefillTab === 'login' || prefillUser) {
+  currentTab = 'login';
+  setTimeout(() => {
+    switchTab('login');
+    if (prefillUser) document.getElementById('lUser').value = prefillUser;
+    if (prefillPass) document.getElementById('lPass').value = prefillPass;
+  }, 100);
+}
+
 window.switchTab = function(tab) {
   currentTab = tab;
   document.getElementById('tabApply').classList.toggle('active', tab === 'apply');

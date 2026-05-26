@@ -334,8 +334,8 @@ window.copyFromNote = (note, storeName) => {
 
 账号：${username}
 密码：${password}
-登录：${base}/apply
-预览：${base}/p/${storeName.replace(/[^一-龥a-zA-Z0-9]/g,'').toLowerCase().substring(0,20)}`;
+👉 点此登录（自动填好）：${base}/apply?u=${username}&p=${password}&t=login
+👤 客人看到的页面：${base}/p/${storeName.replace(/[^一-龥a-zA-Z0-9]/g,'').toLowerCase().substring(0,20)}`;
   navigator.clipboard.writeText(text).then(() => toast('已复制')).catch(() => {});
 };
 
@@ -345,12 +345,11 @@ window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
 📋 登录账号：${username}
 🔑 登录密码：${password}
 
-👉 登录地址：${loginUrl}
-（打开后切换到「商家登录」输入账号密码）
+👉 点此登录（自动填好）：${loginUrl}?u=${username}&p=${password}&t=login
 
 👤 客人看到的页面：${previewUrl}
 
-登录后即可编辑服务卡片内容，如有疑问请联系我们。`;
+点击链接自动填入账号密码，直接点登录即可。`;
   navigator.clipboard.writeText(text).then(() => {
     document.getElementById('copyMsg').textContent = '✅ 已复制！直接粘贴发给商家即可';
   }).catch(() => {
