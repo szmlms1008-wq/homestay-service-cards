@@ -222,7 +222,7 @@ body {
 // 分后台：从 URL 提取 slug
 const SLUG = window.location.pathname.split('/p/')[1]?.split('/')[0] || '';
 const API = '/api/p/' + SLUG + '/admin';
-const TOKEN = localStorage.getItem('card_token') || '';
+let TOKEN = localStorage.getItem('card_token') || '';
 
 function authHeaders() {
   return TOKEN ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN } : {};
@@ -1014,9 +1014,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('lu').value,password:document.getElementById('lp').value}) });
       const d = await r.json();
       if (d.token) {
+        TOKEN = d.token;
         localStorage.setItem('card_token', d.token);
         localStorage.setItem('card_user', JSON.stringify(d.user));
-        window.location.reload();
+        // 直接显示后台，不刷新整页
+        document.querySelector('.sidebar').style.display = '';
+        document.getElementById('mainContent').innerHTML = '';
+        switchTab('homestay');
       } else { el.textContent = d.error; }
     };
 
@@ -1024,8 +1028,14 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const r = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('ru').value,password:document.getElementById('rp').value}) });
       const d = await r.json();
-      if (d.token) { localStorage.setItem('card_token', d.token); localStorage.setItem('card_user', JSON.stringify(d.user)); window.location.reload(); }
-      else document.getElementById('lerr').textContent = d.error;
+      if (d.token) {
+        TOKEN = d.token;
+        localStorage.setItem('card_token', d.token);
+        localStorage.setItem('card_user', JSON.stringify(d.user));
+        document.querySelector('.sidebar').style.display = '';
+        document.getElementById('mainContent').innerHTML = '';
+        switchTab('homestay');
+      } else document.getElementById('lerr').textContent = d.error;
     };
     return;
   }
