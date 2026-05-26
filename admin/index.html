@@ -97,6 +97,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
   <a data-tab="properties" onclick="switchTab('properties')">🏡 店铺管理</a>
   <a data-tab="applications" onclick="switchTab('applications')">📩 入驻申请</a>
   <a data-tab="users" onclick="switchTab('users')">👥 用户管理</a>
+  <a data-tab="feedback" onclick="switchTab('feedback')">💬 用户反馈</a>
   <a data-tab="logs" onclick="switchTab('logs')">📋 操作日志</a>
   <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:12px;">
     <a onclick="showPwChange()" style="cursor:pointer;font-size:13px;">🔑 修改密码</a>
@@ -159,7 +160,7 @@ function switchTab(name) {
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   const link = document.querySelector(`[data-tab="${name}"]`);
   if (link) link.classList.add('active');
-  const loaders = { overview: loadOverview, properties: loadProperties, applications: loadApplications, users: loadUsers, logs: loadLogs };
+  const loaders = { overview: loadOverview, properties: loadProperties, applications: loadApplications, users: loadUsers, feedback: loadFeedback, logs: loadLogs };
   if (loaders[name]) loaders[name]();
 }
 
@@ -425,6 +426,46 @@ async function loadUsers() {
     </table>
   `;
 }
+
+// ====== 用户反馈 ======
+async function loadFeedback() {
+  const list = await api('GET', '/api/admin/feedback');
+  const catMap = { suggestion:'💡 功能建议', bug:'🐛 问题反馈', praise:'❤️ 好评', other:'📌 其他' };
+  const statusMap = { open:'🟢 待处理', closed:'⚫ 已回复' };
+  document.getElementById('mainContent').innerHTML = `
+    <h1>💬 用户反馈 <span style="font-size:14px;color:var(--muted);">（${list.length} 条）</span></h1>
+    ${list.map(f => `
+      <div class="card" style="${f.status==='open'?'border-left:3px solid #f59e0b;':''}">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+          <div>
+            <strong>${f.title}</strong>
+            <span style="font-size:11px;margin-left:8px;">${catMap[f.category]||f.category}</span>
+            <span style="font-size:11px;margin-left:4px;">${statusMap[f.status]||f.status}</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${f.created_at}</span>
+        </div>
+        ${f.content ? `<p style="font-size:13px;color:var(--muted);margin-bottom:8px;">${f.content}</p>` : ''}
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+          👤 ${f.username||'?'} ${f.property_slug ? '· 店铺 '+f.property_slug : ''} ${f.contact ? '· 📞 '+f.contact : ''}
+        </div>
+        ${f.admin_reply ? `<div style="background:#f0fdfa;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:8px;">✅ 已回复：${f.admin_reply}</div>` : ''}
+        ${f.status === 'open' ? `
+          <div class="gap">
+            <input id="reply_${f.id}" type="text" placeholder="输入回复..." style="flex:1;padding:6px 10px;font-size:12px;">
+            <button class="btn btn-sm btn-primary" onclick="replyFeedback(${f.id})">回复</button>
+          </div>` : ''}
+      </div>
+    `).join('') || '<p style="color:var(--muted);text-align:center;padding:40px;">暂无反馈</p>'}
+  `;
+}
+
+window.replyFeedback = async (id) => {
+  const reply = document.getElementById('reply_' + id).value.trim();
+  if (!reply) return;
+  await api('PUT', '/api/admin/feedback/' + id, { status: 'closed', admin_reply: reply });
+  toast('已回复');
+  loadFeedback();
+};
 
 // ====== 操作日志 ======
 async function loadLogs() {

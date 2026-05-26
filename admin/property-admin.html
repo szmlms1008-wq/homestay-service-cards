@@ -212,6 +212,7 @@ body {
       👤 <span id="sidebarUser"></span>
       <span id="sidebarAdmin" style="display:none;color:#d4896a;font-weight:500;">（管理员）</span>
     </div>
+    <a onclick="showFeedback()" style="cursor:pointer;font-size:12px;">💬 意见反馈</a>
     <a onclick="showPasswordChange()" style="cursor:pointer;">🔑 修改密码</a>
     <a id="previewLink" href="#" target="_blank" style="font-size:12px;">👁 预览客人端</a>
     <a onclick="logout()" style="font-size:12px;color:#c62828;">🚪 退出登录</a>
@@ -940,6 +941,41 @@ function loadTab(name) {
 }
 
 function logout() { localStorage.clear(); window.location.reload(); }
+
+function showFeedback() {
+  document.getElementById('mainContent').innerHTML = `
+    <div style="max-width:500px;">
+      <h1>💬 意见反馈</h1>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">告诉我们你的需求，帮助宿说变得更好</p>
+      <div class="fg"><label>反馈类型</label>
+        <select id="fbCat" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;">
+          <option value="suggestion">💡 功能建议</option><option value="bug">🐛 问题反馈</option><option value="praise">❤️ 好评</option><option value="other">📌 其他</option>
+        </select>
+      </div>
+      <div class="fg"><label>标题 *</label><input type="text" id="fbTitle" placeholder="简单描述你的想法" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+      <div class="fg"><label>详细说明</label><textarea id="fbContent" placeholder="可以详细说说你的需求或遇到的问题" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;min-height:100px;"></textarea></div>
+      <div class="fg"><label>联系方式（选填）</label><input type="text" id="fbContact" placeholder="微信号或手机号，方便我们回复你" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+      <button class="btn btn-primary" onclick="submitFeedback()">📩 提交反馈</button>
+      <a class="btn btn-outline" onclick="switchTab('homestay')" style="text-decoration:none;margin-left:8px;cursor:pointer;font-size:13px;">取消</a>
+      <p id="fbMsg" style="margin-top:10px;font-size:13px;"></p>
+    </div>`;
+}
+
+async function submitFeedback() {
+  const title = document.getElementById('fbTitle').value.trim();
+  if (!title) { document.getElementById('fbMsg').textContent = '请填写标题'; document.getElementById('fbMsg').style.color = '#c62828'; return; }
+  const r = await fetch('/api/feedback', { method:'POST', headers:authHeaders(), body:JSON.stringify({
+    category: document.getElementById('fbCat').value,
+    title,
+    content: document.getElementById('fbContent').value.trim(),
+    contact: document.getElementById('fbContact').value.trim(),
+    property_slug: SLUG
+  })});
+  const d = await r.json();
+  const el = document.getElementById('fbMsg');
+  if (d.success) { el.style.color = '#43a047'; el.textContent = '✅ 感谢反馈！我们会认真处理每一条建议。'; }
+  else { el.style.color = '#c62828'; el.textContent = d.error || '提交失败'; }
+}
 
 function showPasswordChange() {
   document.getElementById('mainContent').innerHTML = `

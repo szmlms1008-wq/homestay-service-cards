@@ -53,6 +53,19 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now','localtime'))
   );
 
+  CREATE TABLE IF NOT EXISTS feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    property_slug TEXT,
+    category TEXT DEFAULT 'suggestion',
+    title TEXT NOT NULL,
+    content TEXT,
+    contact TEXT,
+    status TEXT DEFAULT 'open',
+    admin_reply TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+
   CREATE TABLE IF NOT EXISTS error_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
@@ -87,6 +100,11 @@ const stmts = {
   allApplications: db.prepare('SELECT * FROM applications ORDER BY created_at DESC'),
   pendingApplications: db.prepare("SELECT * FROM applications WHERE status = 'pending' ORDER BY created_at DESC"),
   updateApplication: db.prepare('UPDATE applications SET status=?, admin_note=? WHERE id=?'),
+
+  // Feedback
+  submitFeedback: db.prepare('INSERT INTO feedback (username, property_slug, category, title, content, contact) VALUES (?,?,?,?,?,?)'),
+  allFeedback: db.prepare('SELECT * FROM feedback ORDER BY created_at DESC'),
+  updateFeedback: db.prepare('UPDATE feedback SET status=?, admin_reply=? WHERE id=?'),
 
   // Usage logs
   insertLog: db.prepare('INSERT INTO usage_logs (user_id, property_slug, action, details) VALUES (?,?,?,?)'),

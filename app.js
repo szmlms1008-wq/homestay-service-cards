@@ -109,6 +109,25 @@ app.get('/api/admin/logs', authRequired, adminRequired, (_req, res) => {
   res.json(stmts.getLogs.all());
 });
 
+// 反馈系统
+app.post('/api/feedback', authRequired, (req, res) => {
+  const { category, title, content, contact } = req.body;
+  if (!title) return res.status(400).json({ error: '标题必填' });
+  stmts.submitFeedback.run(req.user.username, req.body.property_slug || '', category || 'suggestion', title, content || '', contact || '');
+  logAction(req.user.id, req.body.property_slug || '', 'submit_feedback', { title });
+  res.json({ success: true });
+});
+
+app.get('/api/admin/feedback', authRequired, adminRequired, (_req, res) => {
+  res.json(stmts.allFeedback.all());
+});
+
+app.put('/api/admin/feedback/:id', authRequired, adminRequired, (req, res) => {
+  const { status, admin_reply } = req.body;
+  stmts.updateFeedback.run(status || 'closed', admin_reply || '', req.params.id);
+  res.json({ success: true });
+});
+
 app.get('/api/admin/applications', authRequired, adminRequired, (_req, res) => {
   res.json(stmts.allApplications.all());
 });
