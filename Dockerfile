@@ -7,6 +7,10 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 
+# 初始化持久卷目录结构
+RUN mkdir -p /app/persist/data/properties /app/persist/data/backups /app/persist/uploads \
+    && chmod +x /app/entrypoint.sh
+
 ENV PORT=3000
 EXPOSE 3000
-CMD ["npm", "start"]
+ENTRYPOINT ["/app/entrypoint.sh"]
