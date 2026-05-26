@@ -118,21 +118,21 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, (req, res) =
   const { status, admin_note } = req.body;
   const app = db.prepare('SELECT * FROM applications WHERE id = ?').get(req.params.id);
   if (!app) return res.status(404).json({ error: '申请不存在' });
+  // 防止重复审批
+  if (app.status === 'approved' && status === 'approved') {
+    return res.json({ success: false, error: '该申请已通过审批' });
+  }
 
   stmts.updateApplication.run(status || 'approved', admin_note || '', req.params.id);
 
   if (status === 'approved') {
-    // 生成 slug
     const slug = app.store_name.replace(/[^一-龥a-zA-Z0-9]/g, '').toLowerCase().substring(0, 20) || 'store' + Date.now();
-    // 生成随机账号
     const username = 'store_' + Date.now().toString(36);
     const password = Math.random().toString(36).slice(-8);
     const hash = bcrypt.hashSync(password, 10);
 
     try {
-      // 创建用户
       const ownerId = stmts.createUser.run(username, hash, 'owner').lastInsertRowid;
-      // 创建店铺
       if (!stmts.findBySlug.get(slug)) {
         const mods = JSON.stringify(TYPE_MODULES[app.property_type] || TYPE_MODULES.homestay);
         stmts.createProperty.run(slug, app.store_name, app.property_type, ownerId, app.phone || '', app.wechat || '', mods);

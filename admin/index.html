@@ -310,7 +310,8 @@ window.approveApp = async (id) => {
         </div>
         <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:8px;"></p>
       </div>`;
-    // 不刷新表格，保留信息卡
+    // 刷新表格并隐藏已审批按钮
+    setTimeout(() => loadApplications(), 500);
   }
 };
 
