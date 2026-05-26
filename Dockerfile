@@ -7,8 +7,6 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 
-ENV DATA_DIR=/app/persist/data
-ENV UPLOADS_DIR=/app/persist/uploads
 ENV PORT=3000
 EXPOSE 3000
 

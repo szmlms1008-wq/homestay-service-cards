@@ -3,7 +3,6 @@
     "builder": "docker"
   },
   "deploy": {
-    "startCommand": "mkdir -p /app/persist/data/properties /app/persist/data/backups /app/persist/uploads && echo '[start] dirs created' && ls -la /app/persist/ && npm start",
     "restartPolicyType": "ON_FAILURE"
   }
 }
