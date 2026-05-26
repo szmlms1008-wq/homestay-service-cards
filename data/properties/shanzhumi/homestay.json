@@ -1,18 +1,11 @@
 {
   "propertyType": "homestay",
   "name": "山猪迷路民宿",
-  "logo": "",
-  "coverImage": "",
-  "description": "",
-  "tags": [],
-  "enabledModules": [
-    "homestay",
-    "guide",
-    "attractions",
-    "routes",
-    "food",
-    "products",
-    "tips",
-    "messages"
+  "address": "大理古城人民路88号",
+  "description": "隐匿于青山绿水间的温暖居所",
+  "tags": [
+    "山景庭院",
+    "亲子友好",
+    "宠物可住"
   ]
 }

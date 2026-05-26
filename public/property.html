@@ -449,6 +449,7 @@ section:nth-of-type(even) { background: var(--surface-soft); }
         <div class="hero-logo-placeholder" id="heroLogo">🏡</div>
         <h1 id="heroName">山居小筑</h1>
         <p class="desc" id="heroDesc">隐匿于青山绿水间的温暖居所</p>
+        <p class="desc" id="heroAddr" style="font-size:13px;margin-top:4px;opacity:0.75;"></p>
         <div class="tags" id="heroTags"></div>
       </div>
     </div>
@@ -589,6 +590,7 @@ async function loadHomestay() {
   }
   document.getElementById('heroName').textContent = d.name;
   document.getElementById('heroDesc').textContent = d.description;
+  document.getElementById('heroAddr').textContent = d.address ? '📍 ' + d.address : '';
   document.getElementById('heroTags').innerHTML = d.tags.map(t =>
     `<span class="pill-tag">${esc(t)}</span>`
   ).join('');

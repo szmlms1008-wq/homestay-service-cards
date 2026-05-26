@@ -133,7 +133,7 @@ function initPropertyData(slug, type, storeName) {
   const dir = propDir(slug);
 
   const defaults = {
-    homestay:    { propertyType: type, name: storeName || slug, logo: '', coverImage: '', description: '', tags: [], enabledModules: mods },
+    homestay:    { propertyType: type, name: storeName || slug, logo: '', coverImage: '', description: '', address: '', tags: [], enabledModules: mods },
     guide:       { steps: [{ title: '到达入口', description: '从主路进入，沿指示牌前行。', image: '' }] },
     attractions: { items: [], guideMapImage: '' },
     routes:      { items: [] },

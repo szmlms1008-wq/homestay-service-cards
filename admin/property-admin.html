@@ -294,6 +294,7 @@ async function loadHomestay() {
       <input type="hidden" id="f_coverImage" value="${esc(d.coverImage||'')}">
       <img class="img-preview" id="preview_coverImage" src="${d.coverImage||''}" style="${d.coverImage?'':'display:none'}">
     </div>
+    <div class="fg"><label>店铺地址</label><input type="text" id="f_address" value="${esc(d.address||'')}"></div>
     <div class="fg"><label>一句话简介</label><textarea id="f_description">${esc(d.description)}</textarea></div>
     <div class="fg"><label>特色标签（每行一个）</label><textarea id="f_tags">${d.tags.join('\n')}</textarea></div>
     <button class="btn btn-primary" onclick="saveHomestay()">💾 保存</button>
@@ -308,6 +309,7 @@ async function saveHomestay() {
     name: document.getElementById('f_name').value,
     logo: document.getElementById('f_logo').value,
     coverImage: document.getElementById('f_coverImage').value,
+    address: document.getElementById('f_address').value,
     description: document.getElementById('f_description').value,
     tags: document.getElementById('f_tags').value.split('\n').map(t => t.trim()).filter(t => t)
   };
