@@ -1,7 +1,10 @@
 {
   "build": {
     "builder": "nixpacks",
-    "buildCommand": "npm install"
+    "buildCommand": "npm install",
+    "nixpacks": {
+      "packages": ["python3", "gcc", "g++"]
+    }
   },
   "deploy": {
     "startCommand": "npm start",
