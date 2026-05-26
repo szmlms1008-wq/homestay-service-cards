@@ -333,38 +333,55 @@ window.deleteProperty = async (id, slug) => {
 // ====== 入驻申请 ======
 async function loadApplications() {
   const apps = await api('GET', '/api/admin/applications');
-  const pending = apps.filter(a => a.status === 'pending').length;
+  // 按店铺名去重：同一店铺多次申请合并为一条，显示申请次数
+  var grouped = {};
+  apps.forEach(function(a) {
+    var key = a.store_name;
+    if (!grouped[key]) {
+      grouped[key] = { name: a.name, store_name: a.store_name, property_type: a.property_type,
+        phone: a.phone, wechat: a.wechat, status: a.status, admin_note: a.admin_note,
+        id: a.id, count: 1, names: [a.name] };
+    } else {
+      grouped[key].count++;
+      if (grouped[key].names.indexOf(a.name) === -1) grouped[key].names.push(a.name);
+      if (a.status === 'pending') grouped[key].status = 'pending';
+      if (a.admin_note && a.admin_note.length > (grouped[key].admin_note||'').length) grouped[key].admin_note = a.admin_note;
+      if (a.id > grouped[key].id) grouped[key].id = a.id;
+    }
+  });
+  var merged = Object.values(grouped).sort(function(a,b) { return b.id - a.id; });
+  const pending = merged.filter(function(a) { return a.status === 'pending'; }).length;
 
-  document.getElementById('mainContent').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-      <h1 style="margin-bottom:0;">📩 入驻申请 ${pending ? '<span style="font-size:14px;color:#e65100;">（'+pending+' 条待审核）</span>' : ''}</h1>
-      <a href="/apply" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">🔗 申请页面</a>
-    </div>
-    <table>
-      <thead><tr><th>申请人</th><th>店铺名</th><th>业态</th><th>手机</th><th>微信</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
-      <tbody>
-        ${apps.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">暂无申请</td></tr>' : ''}
-        ${apps.map(a => {
-          const statusMap = { pending: '⏳ 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
-          return `<tr>
-            <td>${a.name}</td><td><strong>${a.store_name}</strong></td>
-            <td>${a.property_type}</td><td>${a.phone||'-'}</td><td>${a.wechat||'-'}</td>
-            <td>${statusMap[a.status]||a.status}</td>
-            <td style="font-size:11px;color:var(--muted);">${(a.admin_note||'').replace('账号: ','').replace(' / 密码: ',' / ')}</td>
-            <td>
-              ${a.status === 'approved' ? `<button class="btn btn-sm btn-primary" onclick="copyFromNote('${escOnclick(a.admin_note||'')}','${escOnclick(a.store_name||'')}')">📋</button>` : ''}
-              ${a.status === 'pending' ? `
-                <div class="gap">
-                  <button class="btn btn-sm btn-primary" onclick="approveApp(${a.id})">✅ 通过</button>
-                  <button class="btn btn-sm btn-danger" onclick="rejectApp(${a.id})">❌ 拒绝</button>
-                </div>` : '-'}
-            </td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
-    <div id="approveResult" style="margin-top:16px;"></div>
-  `;
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
+    '<h1 style="margin-bottom:0;">📩 入驻申请 ' + (pending ? '<span style="font-size:14px;color:#e65100;">（' + pending + ' 条待审核）</span>' : '') + '</h1>' +
+    '<a href="/apply" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">🔗 申请页面</a></div>';
+  html += '<table><thead><tr><th>店铺名</th><th>业态</th><th>联系方式</th><th>申请次数</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody>';
+  if (merged.length === 0) {
+    html += '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">暂无申请</td></tr>';
+  } else {
+    var statusMap = { pending: '⏳ 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
+    merged.forEach(function(a) {
+      var contact = (a.names.join(', ') || a.name) + (a.phone ? ' / ' + a.phone : '') + (a.wechat ? ' / ' + a.wechat : '');
+      html += '<tr><td><strong>' + a.store_name + '</strong></td>' +
+        '<td>' + a.property_type + '</td>' +
+        '<td style="font-size:12px;">' + contact + '</td>' +
+        '<td>' + (a.count > 1 ? '<span style="color:#e65100;font-weight:600;">' + a.count + ' 次</span>' : '1 次') + '</td>' +
+        '<td>' + (statusMap[a.status]||a.status) + '</td>' +
+        '<td style="font-size:11px;color:var(--muted);">' + ((a.admin_note||'').replace('账号: ','').replace(' / 密码: ',' / ')) + '</td>' +
+        '<td>';
+      if (a.status === 'approved') {
+        html += '<button class="btn btn-sm btn-primary" onclick="copyFromNote(\'' + escOnclick(a.admin_note||'') + '\',\'' + escOnclick(a.store_name||'') + '\')">📋</button>';
+      } else if (a.status === 'pending') {
+        html += '<div class="gap"><button class="btn btn-sm btn-primary" onclick="approveApp(' + a.id + ')">✅ 通过</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="rejectApp(' + a.id + ')">❌ 拒绝</button></div>';
+      } else {
+        html += '-';
+      }
+      html += '</td></tr>';
+    });
+  }
+  html += '</tbody></table><div id="approveResult" style="margin-top:16px;"></div>';
+  document.getElementById('mainContent').innerHTML = html;
 }
 
 window.approveApp = async (id) => {
