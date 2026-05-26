@@ -394,8 +394,7 @@ window.copyFromNote = (note, storeName) => {
 
 账号：${username}
 密码：${password}
-👉 点此登录（自动填好）：${base}/apply?u=${username}&t=login#p=${password}
-👤 客人看到的页面：${base}/p/${storeName.replace(/[^一-龥a-zA-Z0-9]/g,'').toLowerCase().substring(0,20)}`;
+👉 点此登录（自动填好）：${base}/apply?u=${username}&t=login#p=${password}`;
   copyToClipboard(text).then(() => toast('已复制')).catch(() => toast('复制失败，请手动复制'));
 };
 
@@ -406,8 +405,6 @@ window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
 🔑 登录密码：${password}
 
 👉 点此登录（自动填好）：${loginUrl}?u=${username}&t=login#p=${password}
-
-👤 客人看到的页面：${previewUrl}
 
 点击链接自动填入账号和密码，登录后请立即修改密码。`;
   copyToClipboard(text).then(() => {
