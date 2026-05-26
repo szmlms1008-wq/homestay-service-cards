@@ -3,7 +3,11 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'data', 'platform.db');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
+const DB_PATH = path.join(DATA_DIR, 'platform.db');
+const PROPS_DIR = path.join(DATA_DIR, 'properties');
+const RECOVERY_FILE = path.join(DATA_DIR, '.admin-recovery');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
@@ -199,7 +203,6 @@ const stmts = {
 // 默认 admin（密码通过环境变量或文件恢复）
 const bcrypt = require('bcryptjs');
 const admin = stmts.findByUsername.get('admin');
-const RECOVERY_FILE = path.join(__dirname, 'data', '.admin-recovery');
 if (!admin) {
   let adminPwd = process.env.ADMIN_PASSWORD;
   // 尝试从恢复文件读取
@@ -222,7 +225,6 @@ if (!admin) {
 }
 
 // 数据目录
-const PROPS_DIR = path.join(__dirname, 'data', 'properties');
 if (!fs.existsSync(PROPS_DIR)) fs.mkdirSync(PROPS_DIR, { recursive: true });
 
 const TYPE_MODULES = {

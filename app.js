@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { db, stmts, propDir, readPropData, writePropData, readPropDataAsync, writePropDataAsync, initPropertyData, TYPE_MODULES, withLock } = require('./db');
+
+const UPLOADS_DIR = process.env.UPLOADS_DIR || UPLOADS_DIR;
 const rateLimit = require('express-rate-limit');
 const { execSync } = require('child_process');
 const importPlugin = require('./plugins/import');
@@ -27,7 +29,7 @@ const JWT_SECRET = (() => {
 const FEATURE_RADAR = process.env.FEATURE_RADAR === 'true';
 
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // 错误日志：拦截所有 4xx/5xx JSON 响应
 app.use((req, res, next) => {
@@ -72,7 +74,7 @@ function logAction(userId, propSlug, action, details) {
 
 // Multer
 const storage = multer.diskStorage({
-  destination: path.join(__dirname, 'uploads'),
+  destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
@@ -416,7 +418,7 @@ app.get('/api/admin/export', authRequired, adminRequired, (req, res) => {
   try {
     // 用系统 zip 打包
     const dataDir = path.join(__dirname, 'data');
-    const uploadsDir = path.join(__dirname, 'uploads');
+    const uploadsDir = UPLOADS_DIR;
     const files = [];
     if (fs.existsSync(path.join(dataDir, 'platform.db'))) files.push('data/platform.db');
     if (fs.existsSync(path.join(dataDir, 'properties'))) files.push('data/properties');
