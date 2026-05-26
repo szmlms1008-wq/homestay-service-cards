@@ -29,6 +29,13 @@ h1 { font-size:24px; color:var(--ink); text-align:center; margin-bottom:4px; }
 .tabs { display:flex; background:#f5f6f8; border-radius:10px; padding:4px; margin-bottom:20px; }
 .tab { flex:1; text-align:center; padding:10px; border-radius:8px; cursor:pointer; font-size:15px; font-weight:500; transition:all 0.15s; color:var(--muted); }
 .tab.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); color:var(--ink); font-weight:600; }
+@media (max-width:480px) {
+  .card { padding:24px 18px; border-radius:12px; }
+  h1 { font-size:20px; }
+  .sub { font-size:13px; }
+  .fg input, .fg select { font-size:16px; }
+  .tab { font-size:14px; padding:8px; }
+}
 </style>
 </head>
 <body>
