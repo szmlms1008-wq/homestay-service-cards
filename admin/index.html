@@ -264,8 +264,9 @@ async function loadApplications() {
             <td>${a.name}</td><td><strong>${a.store_name}</strong></td>
             <td>${a.property_type}</td><td>${a.phone||'-'}</td><td>${a.wechat||'-'}</td>
             <td>${statusMap[a.status]||a.status}</td>
-            <td style="font-size:12px;color:var(--muted);">${a.admin_note||''}</td>
+            <td style="font-size:11px;color:var(--muted);">${(a.admin_note||'').replace('账号: ','').replace(' / 密码: ',' / ')}</td>
             <td>
+              ${a.status === 'approved' ? `<button class="btn btn-sm btn-primary" onclick="copyFromNote('${(a.admin_note||'').replace(/'/g,"\\'")}','${a.store_name}')">📋</button>` : ''}
               ${a.status === 'pending' ? `
                 <div class="gap">
                   <button class="btn btn-sm btn-primary" onclick="approveApp(${a.id})">✅ 通过</button>
@@ -286,33 +287,30 @@ window.approveApp = async (id) => {
   if (r.success) {
     const base = window.location.origin;
     document.getElementById('approveResult').innerHTML = `
-      <div style="background:#f0fdfa;border:2px solid #0d9488;border-radius:16px;padding:28px;margin-top:16px;">
-        <h3 style="margin:0 0 4px;color:#0f766e;">✅ 审核通过</h3>
-        <p style="color:var(--muted);margin-bottom:20px;">请把以下信息发给商家：</p>
-
-        <div style="background:#fff;border:1px dashed #0d9488;border-radius:12px;padding:20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">📋 商家登录信息卡</div>
-          <table style="font-size:14px;">
-            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">店铺</td><td style="padding:4px 0;font-weight:600;">${r.store_name}</td></tr>
-            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">账号</td><td style="padding:4px 0;"><code style="font-size:15px;background:#f5f6f8;padding:2px 8px;border-radius:4px;">${r.username}</code></td></tr>
-            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">密码</td><td style="padding:4px 0;"><code style="font-size:15px;background:#f5f6f8;padding:2px 8px;border-radius:4px;">${r.password}</code></td></tr>
-          </table>
-          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
-            <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">📎 发给商家的链接：</div>
-            <div style="margin-bottom:6px;">登录管理：<a href="${base}/apply" target="_blank" style="color:#0d9488;">${base}/apply</a></div>
-            <div>客人看到：<a href="${base}/p/${r.slug}" target="_blank" style="color:#0d9488;">${base}/p/${r.slug}</a></div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${r.username}','${r.password}','${base}/apply','${base}/p/${r.slug}')">📋 一键复制发给商家</button>
-          <button class="btn btn-sm" onclick="document.getElementById('approveResult').innerHTML=''" style="background:#e5e7eb;">关闭</button>
-        </div>
-        <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:8px;"></p>
+      <div style="background:#f0fdfa;border:1px solid #0d9488;border-radius:10px;padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span style="font-weight:600;color:#0f766e;white-space:nowrap;">✅ ${r.store_name}</span>
+        <span style="font-size:12px;color:var(--muted);">账号</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.username}</code>
+        <span style="font-size:12px;color:var(--muted);">密码</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.password}</code>
+        <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${r.username}','${r.password}','${base}/apply','${base}/p/${r.slug}')">📋 复制</button>
+        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
       </div>`;
-    // 刷新表格并隐藏已审批按钮
     setTimeout(() => loadApplications(), 500);
   }
+};
+
+window.copyFromNote = (note, storeName) => {
+  // note format: "账号: xxx / 密码: yyy"
+  const parts = note.replace('账号: ','').split(' / 密码: ');
+  const username = parts[0] || '';
+  const password = parts[1] || '';
+  const base = window.location.origin;
+  const text = `【民宿服务卡片】${storeName} 已开通 🏡
+
+账号：${username}
+密码：${password}
+登录：${base}/apply
+预览：${base}/p/${storeName.replace(/[^一-龥a-zA-Z0-9]/g,'').toLowerCase().substring(0,20)}`;
+  navigator.clipboard.writeText(text).then(() => toast('已复制')).catch(() => {});
 };
 
 window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
