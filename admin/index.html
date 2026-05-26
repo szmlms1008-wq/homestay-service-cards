@@ -284,16 +284,53 @@ window.approveApp = async (id) => {
   if (!confirm('审核通过后将自动创建店铺和店老板账号，确定吗？')) return;
   const r = await api('PUT', '/api/admin/applications/' + id, { status: 'approved' });
   if (r.success) {
+    const base = window.location.origin;
     document.getElementById('approveResult').innerHTML = `
-      <div style="background:#f0fdfa;border:1px solid #0d9488;border-radius:12px;padding:20px;margin-top:16px;">
-        <strong>✅ 审核通过！账号已自动创建：</strong><br>
-        用户名: <code style="font-size:16px;">${r.username}</code><br>
-        密码: <code style="font-size:16px;">${r.password}</code><br>
-        店铺: <a href="/p/${r.slug}" target="_blank">/p/${r.slug}</a> — ${r.store_name}<br>
-        管理: <a href="/p/${r.slug}/admin" target="_blank">/p/${r.slug}/admin</a>
+      <div style="background:#f0fdfa;border:2px solid #0d9488;border-radius:16px;padding:28px;margin-top:16px;">
+        <h3 style="margin:0 0 4px;color:#0f766e;">✅ 审核通过</h3>
+        <p style="color:var(--muted);margin-bottom:20px;">请把以下信息发给商家：</p>
+
+        <div style="background:#fff;border:1px dashed #0d9488;border-radius:12px;padding:20px;margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">📋 商家登录信息卡</div>
+          <table style="font-size:14px;">
+            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">店铺</td><td style="padding:4px 0;font-weight:600;">${r.store_name}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">账号</td><td style="padding:4px 0;"><code style="font-size:15px;background:#f5f6f8;padding:2px 8px;border-radius:4px;">${r.username}</code></td></tr>
+            <tr><td style="padding:4px 12px 4px 0;color:var(--muted);">密码</td><td style="padding:4px 0;"><code style="font-size:15px;background:#f5f6f8;padding:2px 8px;border-radius:4px;">${r.password}</code></td></tr>
+          </table>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">📎 发给商家的链接：</div>
+            <div style="margin-bottom:6px;">登录管理：<a href="${base}/apply" target="_blank" style="color:#0d9488;">${base}/apply</a></div>
+            <div>客人看到：<a href="${base}/p/${r.slug}" target="_blank" style="color:#0d9488;">${base}/p/${r.slug}</a></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${r.username}','${r.password}','${base}/apply','${base}/p/${r.slug}')">📋 一键复制发给商家</button>
+          <button class="btn btn-sm" onclick="document.getElementById('approveResult').innerHTML=''" style="background:#e5e7eb;">关闭</button>
+        </div>
+        <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:8px;"></p>
       </div>`;
     loadApplications();
   }
+};
+
+window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
+  const text = `【民宿服务卡片】您的店铺已开通 🏡
+
+📋 登录账号：${username}
+🔑 登录密码：${password}
+
+👉 登录地址：${loginUrl}
+（打开后切换到「商家登录」输入账号密码）
+
+👤 客人看到的页面：${previewUrl}
+
+登录后即可编辑服务卡片内容，如有疑问请联系我们。`;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copyMsg').textContent = '✅ 已复制！直接粘贴发给商家即可';
+  }).catch(() => {
+    document.getElementById('copyMsg').textContent = '复制失败，请手动选中上方文字';
+  });
 };
 
 window.rejectApp = async (id) => {

@@ -1,6 +1,6 @@
 {
-  "propertyType": "homestay",
-  "name": "shan",
+  "propertyType": "hotel",
+  "name": "1234",
   "logo": "",
   "coverImage": "",
   "description": "",
@@ -8,12 +8,11 @@
   "tags": [],
   "enabledModules": [
     "homestay",
-    "guide",
-    "attractions",
     "routes",
     "food",
-    "products",
     "tips",
-    "messages"
+    "messages",
+    "facilities",
+    "business"
   ]
 }
