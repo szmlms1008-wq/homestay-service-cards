@@ -164,6 +164,9 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.spinner { border:3px solid var(--hairline); border-top-color:var(--primary); border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
 /* Mobile */
 @media (max-width: 768px) {
   body { flex-direction: column; }
@@ -1017,9 +1020,9 @@ document.addEventListener('DOMContentLoaded', () => {
         TOKEN = d.token;
         localStorage.setItem('card_token', d.token);
         localStorage.setItem('card_user', JSON.stringify(d.user));
-        // 直接显示后台，不刷新整页
+        // 立刻显示框架，后台加载数据
         document.querySelector('.sidebar').style.display = '';
-        document.getElementById('mainContent').innerHTML = '';
+        document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:60px 20px;"><div class="spinner" style="width:32px;height:32px;margin:0 auto 16px;"></div><p style="color:var(--muted);">加载中...</p></div>';
         switchTab('homestay');
       } else { el.textContent = d.error; }
     };
@@ -1033,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('card_token', d.token);
         localStorage.setItem('card_user', JSON.stringify(d.user));
         document.querySelector('.sidebar').style.display = '';
-        document.getElementById('mainContent').innerHTML = '';
+        document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:60px 20px;"><div class="spinner" style="width:32px;height:32px;margin:0 auto 16px;"></div><p style="color:var(--muted);">正在进入后台...</p></div>';
         switchTab('homestay');
       } else document.getElementById('lerr').textContent = d.error;
     };
