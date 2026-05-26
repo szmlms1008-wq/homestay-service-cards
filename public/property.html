@@ -354,6 +354,14 @@ section:nth-of-type(even) { background: var(--surface-soft); }
 .hero-logo-placeholder {
   font-size: 72px; margin-bottom: 12px;
 }
+.hero-logo-img {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  margin-bottom: 12px;
+}
 
 /* Guide step images */
 .guide-thumb {
@@ -582,11 +590,18 @@ function esc(s) {
 async function loadHomestay() {
   const d = await getJSON('/homestay');
   document.title = d.name + ' - 服务卡片';
-  if (d.coverImage) {
-    document.getElementById('heroBg').innerHTML = `<img src="${esc(d.coverImage)}" alt="">`;
-    document.getElementById('heroLogo').style.display = 'none';
+  // Logo：优先显示上传的图片，否则显示默认 emoji
+  const logoEl = document.getElementById('heroLogo');
+  if (d.logo) {
+    logoEl.innerHTML = '<img src="' + esc(d.logo) + '" alt="logo" class="hero-logo-img">';
+    logoEl.style.fontSize = '';
   } else {
-    document.getElementById('heroLogo').textContent = '🏡';
+    logoEl.textContent = '🏡';
+    logoEl.innerHTML = logoEl.textContent;
+  }
+  // 封面作为背景
+  if (d.coverImage) {
+    document.getElementById('heroBg').innerHTML = '<img src="' + esc(d.coverImage) + '" alt="">';
   }
   document.getElementById('heroName').textContent = d.name;
   document.getElementById('heroDesc').textContent = d.description;

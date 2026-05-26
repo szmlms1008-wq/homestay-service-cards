@@ -895,33 +895,49 @@ async function loadQRCode() {
       </div>
     </div>
   `;
-  // 生成 QR 码
+  // 生成 QR 码（canvas → img，方便手机长按保存）
   setTimeout(() => {
     const container = document.getElementById('qrCodeContainer');
     if (container && window.QRCode) {
       container.innerHTML = '';
       new QRCode(container, { text: guestUrl, width: 220, height: 220, colorDark: '#2c2420', colorLight: '#ffffff' });
+      // 把 canvas 转成 img，手机才能长按保存
+      setTimeout(() => {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          const img = document.createElement('img');
+          img.src = canvas.toDataURL('image/png');
+          img.style.width = '220px'; img.style.height = '220px';
+          img.style.display = 'block';
+          canvas.parentNode.replaceChild(img, canvas);
+        }
+      }, 300);
     }
   }, 100);
 }
 
 // 下载/保存 QR 码（兼容手机和电脑）
 window.downloadQRCode = function() {
-  const canvas = document.querySelector('#qrCodeContainer canvas');
-  if (!canvas) { toast('二维码未生成，请稍后重试'); return; }
-  canvas.toBlob(function(blob) {
-    var url = URL.createObjectURL(blob);
-    // 电脑端：自动下载
-    var a = document.createElement('a');
-    a.download = 'qr-' + SLUG + '.png';
-    a.href = url;
-    a.click();
-    // 手机端：打开新窗口，用户可以长按保存
-    setTimeout(function() {
-      window.open(url, '_blank');
-      toast('如未自动下载，请长按图片保存');
-    }, 500);
-  }, 'image/png');
+  var el = document.querySelector('#qrCodeContainer canvas') || document.querySelector('#qrCodeContainer img');
+  if (!el) { toast('二维码未生成，请稍后重试'); return; }
+  // 如果是 canvas，转为图片以便手机长按保存
+  if (el.tagName === 'CANVAS') {
+    var img = document.createElement('img');
+    img.src = el.toDataURL('image/png');
+    img.style.width = '220px'; img.style.height = '220px';
+    img.id = 'qrImg';
+    el.parentNode.replaceChild(img, el);
+  }
+  el = document.querySelector('#qrCodeContainer img');
+  if (!el) return;
+  // 电脑端：尝试自动下载
+  var a = document.createElement('a');
+  a.download = 'qr-' + SLUG + '.png';
+  a.href = el.src;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  toast('如未自动下载，请长按上方二维码图片保存到手机');
 };
 
 // ======== Tab: 竞品雷达预告 ========
