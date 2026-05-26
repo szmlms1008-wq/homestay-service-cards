@@ -3,3 +3,12 @@ uploads/*
 !uploads/.gitkeep
 data/platform.db*
 data/properties/
+data/.admin-recovery
+data/backups/
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/
+*.log
+npm-debug.log*

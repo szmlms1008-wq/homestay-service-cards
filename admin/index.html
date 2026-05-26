@@ -99,6 +99,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
   <a data-tab="users" onclick="switchTab('users')">👥 用户管理</a>
   <a data-tab="feedback" onclick="switchTab('feedback')">💬 用户反馈</a>
   <a data-tab="logs" onclick="switchTab('logs')">📋 操作日志</a>
+  <a data-tab="errors" onclick="switchTab('errors')">❌ 错误日志</a>
   <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:12px;">
     <a onclick="showPwChange()" style="cursor:pointer;font-size:13px;">🔑 修改密码</a>
     <a onclick="logout()" style="font-size:13px;">🚪 退出登录</a>
@@ -126,6 +127,30 @@ function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.style.display = 'block';
   clearTimeout(el._t); el._t = setTimeout(() => el.style.display = 'none', 2000);
+}
+
+// 兼容方案：HTTP 环境下降级到 execCommand
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      const ok = document.execCommand('copy');
+      if (ok) resolve(); else reject(new Error('execCommand failed'));
+    } catch (e) { reject(e); }
+    document.body.removeChild(ta);
+  });
+}
+
+// 安全转义：用于 inline onclick 属性中的 JS 字符串值
+// 处理 HTML 属性定界符 (") 和 JS 字符串定界符 (')
+function escOnclick(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, "\\'");
 }
 
 // ====== 登录 ======
@@ -160,42 +185,76 @@ function switchTab(name) {
   document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   const link = document.querySelector(`[data-tab="${name}"]`);
   if (link) link.classList.add('active');
-  const loaders = { overview: loadOverview, properties: loadProperties, applications: loadApplications, users: loadUsers, feedback: loadFeedback, logs: loadLogs };
+  const loaders = { overview: loadOverview, properties: loadProperties, applications: loadApplications, users: loadUsers, feedback: loadFeedback, logs: loadLogs, errors: loadErrors };
   if (loaders[name]) loaders[name]();
 }
 
 // ====== 概览 ======
 async function loadOverview() {
-  const [props, users, logs] = await Promise.all([
+  const [props, users, logs, stats] = await Promise.all([
     api('GET','/api/admin/properties'),
     api('GET','/api/admin/users'),
-    api('GET','/api/admin/logs')
+    api('GET','/api/admin/logs'),
+    api('GET','/api/admin/stats').catch(() => ({}))
   ]);
   const typeCounts = { homestay: props.filter(p=>p.property_type==='homestay').length, hotel: props.filter(p=>p.property_type==='hotel').length, apartment: props.filter(p=>p.property_type==='apartment').length };
+  const upH = Math.floor((stats.uptime||0) / 60);
+  const upM = (stats.uptime||0) % 60;
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
+    '<h1 style="margin-bottom:0;">📊 平台概览</h1>' +
+    '<button class="btn btn-outline btn-sm" onclick="exportData()">📦 导出全部数据</button>' +
+    '</div>';
 
-  document.getElementById('mainContent').innerHTML = `
-    <h1>📊 平台概览</h1>
-    <div class="stats">
-      <div class="stat"><div class="num">${props.length}</div><div class="lbl">总店铺数</div></div>
-      <div class="stat"><div class="num">${users.length}</div><div class="lbl">注册用户</div></div>
-      <div class="stat"><div class="num">${logs.length}</div><div class="lbl">操作记录</div></div>
-      <div class="stat"><div class="num">${typeCounts.homestay+typeCounts.hotel+typeCounts.apartment}</div><div class="lbl">活跃业态</div></div>
-    </div>
-    <div class="card">
-      <h3>🏡 业态分布</h3>
-      <div style="display:flex;gap:24px;">
-        <div><span class="pill pill-homestay">🏡 民宿</span> <strong>${typeCounts.homestay}</strong></div>
-        <div><span class="pill pill-hotel">🏨 酒店</span> <strong>${typeCounts.hotel}</strong></div>
-        <div><span class="pill pill-apartment">🏢 公寓</span> <strong>${typeCounts.apartment}</strong></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>📋 最新操作</h3>
-      <table><thead><tr><th>时间</th><th>店铺</th><th>操作</th></tr></thead>
-        <tbody>${logs.slice(0,10).map(l => `<tr><td>${l.created_at||''}</td><td>${l.property_slug||'-'}</td><td>${l.action}</td></tr>`).join('')}</tbody>
-      </table>
-    </div>
-  `;
+  // 今日实时面板
+  if (stats.date) {
+    var ok = stats.errors === 0 && stats.loginFails < 5;
+    html += '<div class="card" style="border-left:4px solid ' + (ok ? '#7da891' : '#e65100') + ';margin-bottom:16px;">' +
+      '<h3>' + (ok ? '🟢 系统运行正常' : '🟠 需要关注') + '</h3>' +
+      '<div class="stats" style="grid-template-columns:repeat(5,1fr);">' +
+      '<div class="stat"><div class="num">' + stats.visits + '</div><div class="lbl">今日访问</div></div>' +
+      '<div class="stat"><div class="num" style="color:' + (stats.loginFails>10?'#c62828':'') + '">' + stats.loginFails + '</div><div class="lbl">登录失败</div></div>' +
+      '<div class="stat"><div class="num" style="color:' + (stats.errors>0?'#c62828':'') + '">' + stats.errors + '</div><div class="lbl">服务端错误</div></div>' +
+      '<div class="stat"><div class="num">' + upH + 'h' + upM + 'm</div><div class="lbl">运行时间</div></div>' +
+      '<div class="stat"><div class="num">' + stats.pendingApps + '</div><div class="lbl">待审核</div></div>' +
+      '</div></div>';
+  }
+
+  html += '<div class="stats">' +
+    '<div class="stat"><div class="num">' + props.length + '</div><div class="lbl">总店铺数</div></div>' +
+    '<div class="stat"><div class="num">' + users.length + '</div><div class="lbl">注册用户</div></div>' +
+    '<div class="stat"><div class="num">' + logs.length + '</div><div class="lbl">操作记录</div></div>' +
+    '<div class="stat"><div class="num">' + (typeCounts.homestay+typeCounts.hotel+typeCounts.apartment) + '</div><div class="lbl">活跃业态</div></div>' +
+    '</div>' +
+    '<div class="card"><h3>🏡 业态分布</h3>' +
+    '<div style="display:flex;gap:24px;">' +
+    '<div><span class="pill pill-homestay">🏡 民宿</span> <strong>' + typeCounts.homestay + '</strong></div>' +
+    '<div><span class="pill pill-hotel">🏨 酒店</span> <strong>' + typeCounts.hotel + '</strong></div>' +
+    '<div><span class="pill pill-apartment">🏢 公寓</span> <strong>' + typeCounts.apartment + '</strong></div>' +
+    '</div></div>' +
+    '<div class="card"><h3>📋 最新操作</h3>' +
+    '<table><thead><tr><th>时间</th><th>店铺</th><th>操作</th></tr></thead>' +
+    '<tbody>' + logs.slice(0,10).map(function(l) { return '<tr><td>' + (l.created_at||'') + '</td><td>' + (l.property_slug||'-') + '</td><td>' + l.action + '</td></tr>'; }).join('') + '</tbody>' +
+    '</table></div>';
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+async function exportData() {
+  const token = localStorage.getItem('card_token');
+  if (!token) { toast('请先登录'); return; }
+  toast('正在打包数据...');
+  try {
+    const r = await fetch('/api/admin/export', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { toast('导出失败'); return; }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sushuo-export-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('导出完成');
+  } catch(e) { toast('导出失败: ' + e.message); }
 }
 
 // ====== 店铺管理 ======
@@ -293,7 +352,7 @@ async function loadApplications() {
             <td>${statusMap[a.status]||a.status}</td>
             <td style="font-size:11px;color:var(--muted);">${(a.admin_note||'').replace('账号: ','').replace(' / 密码: ',' / ')}</td>
             <td>
-              ${a.status === 'approved' ? `<button class="btn btn-sm btn-primary" onclick="copyFromNote('${(a.admin_note||'').replace(/'/g,"\\'")}','${a.store_name}')">📋</button>` : ''}
+              ${a.status === 'approved' ? `<button class="btn btn-sm btn-primary" onclick="copyFromNote('${escOnclick(a.admin_note||'')}','${escOnclick(a.store_name||'')}')">📋</button>` : ''}
               ${a.status === 'pending' ? `
                 <div class="gap">
                   <button class="btn btn-sm btn-primary" onclick="approveApp(${a.id})">✅ 通过</button>
@@ -318,7 +377,7 @@ window.approveApp = async (id) => {
         <span style="font-weight:600;color:#0f766e;white-space:nowrap;">✅ ${r.store_name}</span>
         <span style="font-size:12px;color:var(--muted);">账号</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.username}</code>
         <span style="font-size:12px;color:var(--muted);">密码</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.password}</code>
-        <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${r.username}','${r.password}','${base}/apply','${base}/p/${r.slug}')">📋 复制</button>
+        <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${escOnclick(r.username)}','${escOnclick(r.password)}','${base}/apply','${base}/p/${escOnclick(r.slug)}')">📋 复制</button>
         <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
       </div>`;
     setTimeout(() => loadApplications(), 500);
@@ -335,9 +394,9 @@ window.copyFromNote = (note, storeName) => {
 
 账号：${username}
 密码：${password}
-👉 点此登录（自动填好）：${base}/apply?u=${username}&p=${password}&t=login
+👉 点此登录（自动填好）：${base}/apply?u=${username}&t=login#p=${password}
 👤 客人看到的页面：${base}/p/${storeName.replace(/[^一-龥a-zA-Z0-9]/g,'').toLowerCase().substring(0,20)}`;
-  navigator.clipboard.writeText(text).then(() => toast('已复制')).catch(() => {});
+  copyToClipboard(text).then(() => toast('已复制')).catch(() => toast('复制失败，请手动复制'));
 };
 
 window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
@@ -346,12 +405,12 @@ window.copyMerchantInfo = (username, password, loginUrl, previewUrl) => {
 📋 登录账号：${username}
 🔑 登录密码：${password}
 
-👉 点此登录（自动填好）：${loginUrl}?u=${username}&p=${password}&t=login
+👉 点此登录（自动填好）：${loginUrl}?u=${username}&t=login#p=${password}
 
 👤 客人看到的页面：${previewUrl}
 
-点击链接自动填入账号密码，直接点登录即可。`;
-  navigator.clipboard.writeText(text).then(() => {
+点击链接自动填入账号和密码，登录后请立即修改密码。`;
+  copyToClipboard(text).then(() => {
     document.getElementById('copyMsg').textContent = '✅ 已复制！直接粘贴发给商家即可';
   }).catch(() => {
     document.getElementById('copyMsg').textContent = '复制失败，请手动选中上方文字';
@@ -379,7 +438,7 @@ ${app.name} 您好，您在「宿说」提交的店铺「${app.store_name}」入
       <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:10px;padding:14px 16px;margin-top:12px;">
         <span style="font-weight:600;color:#c62828;">❌ 已拒绝 ${app.store_name}</span>
         <span style="font-size:12px;color:var(--muted);margin-left:8px;">${note}</span>
-        <button class="btn btn-sm btn-danger" onclick="copyToClipboard('${text.replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">📋 复制通知发给商家</button>
+        <button class="btn btn-sm btn-danger" onclick="copyRejectNote('${escOnclick(text).replace(/\n/g,'\\n')}')">📋 复制通知发给商家</button>
         <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
         <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:6px;"></p>
       </div>`;
@@ -387,10 +446,13 @@ ${app.name} 您好，您在「宿说」提交的店铺「${app.store_name}」入
   loadApplications();
 };
 
-window.copyToClipboard = (text) => {
-  navigator.clipboard.writeText(text.replace(/\\n/g,'\n')).then(() => {
+window.copyRejectNote = (text) => {
+  copyToClipboard(text.replace(/\\n/g,'\n')).then(() => {
     const el = document.getElementById('copyMsg');
     if (el) el.textContent = '✅ 已复制，去微信粘贴发给商家';
+  }).catch(() => {
+    const el = document.getElementById('copyMsg');
+    if (el) el.textContent = '❌ 复制失败，请手动复制';
   });
 };
 
@@ -477,6 +539,28 @@ async function loadLogs() {
       <tbody>${logs.slice(0,50).map(l => `<tr><td style="white-space:nowrap;">${l.created_at||''}</td><td>${l.property_slug||'-'}</td><td>${l.action}</td><td style="color:var(--muted);font-size:12px;">${(l.details||'').substring(0,80)}</td></tr>`).join('')}</tbody>
     </table>
   `;
+}
+
+function loadErrors() {
+  api('GET', '/api/admin/error-logs?limit=100').then(logs => {
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
+      '<h1 style="margin-bottom:0;">❌ 错误日志 <span style="font-size:14px;color:var(--muted);font-weight:400;">（最近 ' + logs.length + ' 条）</span></h1>' +
+      '<button class="btn btn-outline btn-sm" onclick="loadErrors()">🔄 刷新</button></div>';
+    if (logs.length === 0) {
+      html += '<p style="color:var(--muted);padding:24px 0;">暂无错误，系统运行正常 ✅</p>';
+    } else {
+      html += '<table><thead><tr><th>时间</th><th>类型</th><th>接口</th><th>错误信息</th></tr></thead><tbody>';
+      logs.forEach(function(l) {
+        var color = (l.error_type === 'http_500' || l.error_type === 'uncaught') ? '#c62828' : '#e65100';
+        html += '<tr><td style="white-space:nowrap;font-size:12px;">' + (l.created_at||'') + '</td>' +
+          '<td><span style="color:' + color + ';font-size:11px;font-weight:600;">' + (l.error_type||'') + '</span></td>' +
+          '<td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (l.stack||'-') + '</td>' +
+          '<td style="color:var(--muted);font-size:12px;">' + (l.message||'') + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    document.getElementById('mainContent').innerHTML = html;
+  });
 }
 </script>
 </body>

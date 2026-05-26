@@ -81,8 +81,9 @@ let currentTab = 'apply';
 
 // URL 参数自动填充
 const params = new URLSearchParams(window.location.search);
+const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 const prefillUser = params.get('u') || '';
-const prefillPass = params.get('p') || '';
+const prefillPass = params.get('p') || hashParams.get('p') || '';
 const prefillTab = params.get('t') || '';
 
 if (prefillTab === 'login' || prefillUser) {
