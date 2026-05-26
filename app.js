@@ -150,6 +150,21 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, (req, res) =
   }
 });
 
+// 修改密码
+app.put('/api/me/password', authRequired, (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword || newPassword.length < 4) {
+    return res.status(400).json({ error: '新密码至少4位' });
+  }
+  const user = stmts.findByUsername.get(req.user.username);
+  if (!user || !bcrypt.compareSync(oldPassword, user.password_hash)) {
+    return res.status(400).json({ error: '原密码错误' });
+  }
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(newPassword, 10), req.user.id);
+  logAction(req.user.id, null, 'change_password', null);
+  res.json({ success: true });
+});
+
 // ====== 店铺数据 API（客人端，无需认证） ======
 app.get('/api/p/:slug/modules', (req, res) => {
   const prop = stmts.findBySlug.get(req.params.slug);

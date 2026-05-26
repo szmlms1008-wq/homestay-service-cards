@@ -199,6 +199,16 @@ body {
   <a data-tab="nearby" onclick="switchTab('nearby')">🛒 周边便利</a>
   <a data-tab="modules" onclick="switchTab('modules')">⚙️ 模块管理</a>
   <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
+  <div style="border-top:1px solid var(--hairline);margin-top:16px;padding:16px 0 12px;">
+    <div style="padding:0 20px;font-size:12px;color:var(--muted);margin-bottom:8px;">
+      👤 <span id="sidebarUser"></span>
+      <span id="sidebarAdmin" style="display:none;color:#d4896a;font-weight:500;">（管理员）</span>
+    </div>
+    <a onclick="showPasswordChange()" style="cursor:pointer;">🔑 修改密码</a>
+    <a href="/p/${SLUG}" target="_blank" style="font-size:12px;">👁 预览客人端</a>
+    <a href="/admin" style="font-size:12px;">↩️ 返回总后台</a>
+    <a onclick="logout()" style="font-size:12px;color:#c62828;">🚪 退出</a>
+  </div>
 </div>
 
 <div class="main" id="mainContent"></div>
@@ -920,7 +930,39 @@ function loadTab(name) {
   }
 }
 
+function logout() { localStorage.clear(); window.location.reload(); }
+
+function showPasswordChange() {
+  document.getElementById('mainContent').innerHTML = `
+    <div style="max-width:440px;">
+      <h1>🔑 修改密码</h1>
+      <form id="pwForm" style="margin-top:20px;">
+        <div class="fg"><label>原密码</label><input type="password" id="oldPw" required style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+        <div class="fg"><label>新密码（至少4位）</label><input type="password" id="newPw" required minlength="4" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+        <button class="btn btn-primary" type="submit">💾 保存</button>
+        <a class="btn btn-outline" onclick="switchTab('homestay')" style="text-decoration:none;margin-left:8px;cursor:pointer;font-size:13px;">取消</a>
+      </form>
+      <p id="pwMsg" style="margin-top:10px;font-size:13px;"></p>
+    </div>`;
+  document.getElementById('pwForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/me/password', { method:'PUT', headers:authHeaders(), body:JSON.stringify({oldPassword:document.getElementById('oldPw').value,newPassword:document.getElementById('newPw').value}) });
+    const d = await r.json();
+    const el = document.getElementById('pwMsg');
+    el.style.color = d.success ? '#43a047' : '#c62828';
+    el.textContent = d.success ? '✅ 密码修改成功' : (d.error || '修改失败');
+  };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  // 显示用户信息
+  try {
+    const user = JSON.parse(localStorage.getItem('card_user') || 'null');
+    if (user) {
+      document.getElementById('sidebarUser').textContent = user.username;
+      if (user.role === 'admin') document.getElementById('sidebarAdmin').style.display = '';
+    }
+  } catch(e) {}
   if (!TOKEN) {
     document.querySelector('.sidebar').style.display = 'none';
     document.getElementById('mainContent').innerHTML = `

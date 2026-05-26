@@ -72,7 +72,10 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
   <a data-tab="applications" onclick="switchTab('applications')">📩 入驻申请</a>
   <a data-tab="users" onclick="switchTab('users')">👥 用户管理</a>
   <a data-tab="logs" onclick="switchTab('logs')">📋 操作日志</a>
-  <a onclick="logout()" style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">🚪 退出登录</a>
+  <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:12px;">
+    <a onclick="showPwChange()" style="cursor:pointer;font-size:13px;">🔑 修改密码</a>
+    <a onclick="logout()" style="font-size:13px;">🚪 退出登录</a>
+  </div>
 </div>
 
 <div class="main" id="mainContent"></div>
@@ -297,6 +300,27 @@ window.rejectApp = async (id) => {
   const note = prompt('拒绝原因（可选）:');
   await api('PUT', '/api/admin/applications/' + id, { status: 'rejected', admin_note: note || '' });
   loadApplications();
+};
+
+window.showPwChange = () => {
+  document.getElementById('mainContent').innerHTML = `
+    <div style="max-width:440px;">
+      <h1>🔑 修改密码</h1>
+      <form id="pwFm" style="margin-top:20px;">
+        <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">原密码</label><input id="oldPw" type="password" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
+        <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">新密码（至少4位）</label><input id="newPw" type="password" required minlength="4" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
+        <div class="gap"><button class="btn btn-primary" type="submit">💾 保存</button><button class="btn" type="button" onclick="switchTab('overview')" style="background:#e5e7eb;">取消</button></div>
+      </form>
+      <p id="pwMsg" style="margin-top:10px;font-size:13px;"></p>
+    </div>`;
+  document.getElementById('pwFm').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/me/password', { method:'PUT', headers:authHeaders(), body:JSON.stringify({oldPassword:document.getElementById('oldPw').value,newPassword:document.getElementById('newPw').value}) });
+    const d = await r.json();
+    const el = document.getElementById('pwMsg');
+    el.style.color = d.success ? '#43a047' : '#c62828';
+    el.textContent = d.success ? '✅ 密码修改成功' : (d.error || '修改失败');
+  };
 };
 
 // ====== 用户管理 ======
