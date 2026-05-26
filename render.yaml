@@ -3,5 +3,10 @@ services:
     name: homestay-service-cards
     env: node
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: mkdir -p /opt/render/project/data/properties /opt/render/project/data/backups /opt/render/project/uploads && node app.js
     plan: free
+    envVars:
+      - key: JWT_SECRET
+        value: sushuo-dev-secret-key-2026
+      - key: ADMIN_PASSWORD
+        value: admin123
