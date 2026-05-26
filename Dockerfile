@@ -12,5 +12,4 @@ ENV UPLOADS_DIR=/app/persist/uploads
 ENV PORT=3000
 EXPOSE 3000
 
-RUN chmod +x /app/entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["npm", "start"]
