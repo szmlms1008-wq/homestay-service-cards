@@ -150,6 +150,12 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, (req, res) =
   }
 });
 
+// 获取当前用户的店铺列表
+app.get('/api/me/properties', authRequired, (req, res) => {
+  if (req.user.role === 'admin') return res.json(stmts.allProperties.all());
+  res.json(stmts.userProperties.all(req.user.id));
+});
+
 // 修改密码
 app.put('/api/me/password', authRequired, (req, res) => {
   const { oldPassword, newPassword } = req.body;

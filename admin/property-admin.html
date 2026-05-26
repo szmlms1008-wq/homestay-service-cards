@@ -1002,10 +1002,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('loginFm').onsubmit = async (e) => {
       e.preventDefault();
+      const el = document.getElementById('lerr');
+      el.textContent = '登录中...';
       const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('lu').value,password:document.getElementById('lp').value}) });
       const d = await r.json();
-      if (d.token) { localStorage.setItem('card_token', d.token); localStorage.setItem('card_user', JSON.stringify(d.user)); window.location.reload(); }
-      else document.getElementById('lerr').textContent = d.error;
+      if (d.token) {
+        localStorage.setItem('card_token', d.token);
+        localStorage.setItem('card_user', JSON.stringify(d.user));
+        window.location.reload();
+      } else { el.textContent = d.error; }
     };
 
     document.getElementById('registerFm').onsubmit = async (e) => {

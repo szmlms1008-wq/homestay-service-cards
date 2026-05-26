@@ -1,0 +1,19 @@
+{
+  "propertyType": "homestay",
+  "name": "测试民宿",
+  "logo": "",
+  "coverImage": "",
+  "description": "",
+  "address": "",
+  "tags": [],
+  "enabledModules": [
+    "homestay",
+    "guide",
+    "attractions",
+    "routes",
+    "food",
+    "products",
+    "tips",
+    "messages"
+  ]
+}

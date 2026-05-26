@@ -126,7 +126,7 @@ document.getElementById('applyForm').onsubmit = async (e) => {
   }
 };
 
-// 登录提交
+// 登录提交 → 自动跳转到对应后台
 document.getElementById('loginForm').onsubmit = async (e) => {
   e.preventDefault();
   const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('lUser').value,password:document.getElementById('lPass').value}) });
@@ -134,13 +134,19 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   if (d.token) {
     localStorage.setItem('card_token', d.token);
     localStorage.setItem('card_user', JSON.stringify(d.user));
-    document.getElementById('panelLogin').innerHTML = `
-      <div class="success">
-        <div class="icon">✅</div>
-        <h2>登录成功，${d.user.username}</h2>
-        <p>前往后台管理你的店铺。</p>
-        <a class="btn" href="/admin" style="display:block;text-decoration:none;width:200px;margin:16px auto;">进入后台</a>
-      </div>`;
+    // 管理员 → 总后台，商家 → 自动跳自己的店铺后台
+    if (d.user.role === 'admin') {
+      window.location.href = '/admin';
+    } else {
+      // 查询用户的店铺
+      const props = await fetch('/api/me/properties', { headers: {'Authorization': 'Bearer ' + d.token} });
+      const propsData = await props.json();
+      if (propsData.length > 0) {
+        window.location.href = '/p/' + propsData[0].slug + '/admin';
+      } else {
+        window.location.href = '/admin';
+      }
+    }
   } else {
     document.getElementById('lMsg').textContent = d.error || '登录失败';
   }
