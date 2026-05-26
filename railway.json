@@ -1,10 +1,6 @@
 {
   "build": {
-    "builder": "nixpacks",
-    "buildCommand": "npm install",
-    "nixpacks": {
-      "packages": ["python3", "gcc", "g++"]
-    }
+    "builder": "docker"
   },
   "deploy": {
     "startCommand": "mkdir -p /app/persist/data/properties /app/persist/data/backups /app/persist/uploads && npm start",
