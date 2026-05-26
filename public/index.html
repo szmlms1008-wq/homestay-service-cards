@@ -511,7 +511,34 @@ section:nth-of-type(even) { background: var(--surface-soft); }
   </div>
 </div>
 
-<!-- ====== 7. 温馨提示 ====== -->
+<!-- ====== 7. 酒店设施 ====== -->
+<section id="facilities" class="reveal">
+  <div class="container">
+    <h2 class="section-title"><span class="float-icon">🏊</span> 酒店设施</h2>
+    <p class="section-subtitle">为您提供舒适的入住体验</p>
+    <div class="reveal-stagger" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;" id="facilityList"></div>
+  </div>
+</section>
+
+<!-- ====== 8. 商务服务 ====== -->
+<section id="business" class="reveal">
+  <div class="container">
+    <h2 class="section-title"><span class="float-icon">💼</span> 商务服务</h2>
+    <p class="section-subtitle">满足您的商务需求</p>
+    <div class="reveal-stagger" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;" id="bizList"></div>
+  </div>
+</section>
+
+<!-- ====== 9. 周边便利 ====== -->
+<section id="nearby" class="reveal">
+  <div class="container">
+    <h2 class="section-title"><span class="float-icon">🛒</span> 周边便利</h2>
+    <p class="section-subtitle">日常生活所需，步行可达</p>
+    <div class="reveal-stagger" style="display:flex;flex-direction:column;gap:14px;" id="nearList"></div>
+  </div>
+</section>
+
+<!-- ====== 7-old. 温馨提示 ====== -->
 <section id="tips" class="reveal">
   <div class="container">
     <h2 class="section-title"><span class="float-icon">💡</span> 温馨提示</h2>
@@ -755,14 +782,85 @@ document.getElementById('msgInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') submitMsg();
 });
 
+// === 7. Facilities ===
+async function loadFacilities() {
+  const d = await getJSON('/api/facilities');
+  document.getElementById('facilityList').innerHTML = d.items.map(f => `
+    <div class="card" style="display:flex;align-items:flex-start;gap:12px;">
+      <span style="font-size:28px;">${esc(f.name.split(' ')[0] || '🏊')}</span>
+      <div><strong style="color:var(--ink);font-size:15px;">${esc(f.name.replace(/^[^\s]+ /,'') || f.name)}</strong>
+      <p style="font-size:13px;color:var(--body);margin-top:4px;">${esc(f.description)}</p></div>
+    </div>
+  `).join('');
+}
+
+// === 8. Business ===
+async function loadBusiness() {
+  const d = await getJSON('/api/business');
+  document.getElementById('bizList').innerHTML = d.items.map(b => `
+    <div class="card" style="display:flex;align-items:flex-start;gap:12px;">
+      <span style="font-size:28px;">${esc(b.name.split(' ')[0] || '💼')}</span>
+      <div><strong style="color:var(--ink);font-size:15px;">${esc(b.name.replace(/^[^\s]+ /,'') || b.name)}</strong>
+      <p style="font-size:13px;color:var(--body);margin-top:4px;">${esc(b.description)}</p></div>
+    </div>
+  `).join('');
+}
+
+// === 9. Nearby ===
+async function loadNearby() {
+  const d = await getJSON('/api/nearby');
+  const icons = ['🏪','🚇','🏥','💊','🏦','🏫','🛍️','🍎'];
+  document.getElementById('nearList').innerHTML = d.items.map((n, i) => `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div class="food-icon">${icons[i] || '📍'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+            <h3 style="font-size:16px;font-weight:600;color:var(--ink);">${esc(n.name)}</h3>
+          </div>
+          <p style="font-size:13px;color:var(--body);margin:6px 0 10px;line-height:1.6;">${esc(n.description)}</p>
+          ${n.lat && n.lng ? `<button class="btn-map" onclick="openMapNav(${n.lat},${n.lng},'${esc(n.name)}')">📍 导航去这里</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
 // === Init ===
 async function init() {
   try {
-    await Promise.all([
-      loadHomestay(), loadGuide(), loadAttractions(), loadRoutes(),
-      loadFood(), loadProducts(), loadTips(), loadMessages()
-    ]);
-    // After content loaded, observe for scroll animations
+    // 获取模块列表
+    let modules = null;
+    try {
+      const modResp = await getJSON('/api/modules');
+      modules = modResp.modules;
+      // 根据业态更新页面标题
+      const typeNames = { homestay: '民宿', hotel: '酒店', apartment: '公寓' };
+      const typeName = typeNames[modResp.propertyType] || '民宿';
+      document.title = document.getElementById('heroName').textContent || (typeName + ' - 服务卡片');
+    } catch (e) { /* 回退到全部加载 */ }
+
+    const loaders = {
+      homestay: loadHomestay, guide: loadGuide, attractions: loadAttractions,
+      routes: loadRoutes, food: loadFood, products: loadProducts, tips: loadTips,
+      messages: loadMessages, facilities: loadFacilities, business: loadBusiness, nearby: loadNearby,
+    };
+
+    // 动态渲染：只加载启用的模块，隐藏未启用的 section
+    const tasks = [];
+    const allSections = ['homestay','guide','attractions','routes','food','products','tips','messages','facilities','business','nearby'];
+
+    allSections.forEach(name => {
+      const section = document.getElementById(name);
+      if (!section) return;
+      if (!modules || modules.includes(name)) {
+        if (loaders[name]) tasks.push(loaders[name]());
+      } else {
+        section.style.display = 'none';
+      }
+    });
+
+    await Promise.all(tasks);
     setupScrollAnimations();
   } catch (err) {
     console.error('Page init error:', err);

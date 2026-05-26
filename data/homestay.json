@@ -1,7 +1,22 @@
 {
-  "name": "山居小筑",
-  "logo": "",
-  "coverImage": "",
+  "propertyType": "hotel",
+  "enabledModules": [
+    "homestay",
+    "routes",
+    "food",
+    "tips",
+    "messages",
+    "facilities",
+    "business"
+  ],
+  "name": "山猪迷路民宿",
+  "logo": "/uploads/1779709371424-888886738.png",
+  "coverImage": "/uploads/1779719859297-739564478.png",
   "description": "隐匿于青山绿水间的温暖居所，让每一次停留都成为美好回忆。",
-  "tags": ["山景庭院", "亲子友好", "宠物可住", "农家早餐"]
+  "tags": [
+    "山景庭院",
+    "亲子友好",
+    "宠物可住",
+    "农家早餐"
+  ]
 }

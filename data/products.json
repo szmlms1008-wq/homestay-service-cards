@@ -1,10 +1,58 @@
 {
   "items": [
-    { "name": "手工蜂蜜", "price": 68, "description": "自家蜂场采集的百花蜜，纯天然无添加，500g装。", "image": "", "active": true, "wechat": "homestay_shop", "phone": "13800001234" },
-    { "name": "竹编制品", "price": 128, "description": "本地老手艺人手工编织的竹篮，每个独一无二。", "image": "", "active": true, "wechat": "homestay_shop", "phone": "13800001234" },
-    { "name": "高山茶叶", "price": 198, "description": "海拔800米以上茶园采摘，清香回甘，250g礼盒装。", "image": "", "active": true, "wechat": "homestay_shop", "phone": "13800001234" },
-    { "name": "手工皂礼盒", "price": 88, "description": "天然植物精油手工皂，4块装礼盒，适合送礼。", "image": "", "active": true, "wechat": "homestay_shop", "phone": "13800001234" },
-    { "name": "民宿定制明信片", "price": 25, "description": "民宿周边风景手绘明信片，6张套装。", "image": "", "active": true, "wechat": "homestay_shop", "phone": "13800001234" },
-    { "name": "本地特产零食礼包", "price": 158, "description": "精选6种本地特色零食，独立包装，方便携带。", "image": "", "active": false, "wechat": "homestay_shop", "phone": "13800001234" }
+    {
+      "active": true,
+      "name": "手工蜂蜜",
+      "price": 68,
+      "description": "自家蜂场采集的百花蜜，纯天然无添加，500g装。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    },
+    {
+      "active": true,
+      "name": "竹编制品",
+      "price": 128,
+      "description": "本地老手艺人手工编织的竹篮，每个独一无二。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    },
+    {
+      "active": true,
+      "name": "高山茶叶",
+      "price": 198,
+      "description": "海拔800米以上茶园采摘，清香回甘，250g礼盒装。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    },
+    {
+      "active": true,
+      "name": "手工皂礼盒",
+      "price": 88,
+      "description": "天然植物精油手工皂，4块装礼盒，适合送礼。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    },
+    {
+      "active": true,
+      "name": "民宿定制明信片",
+      "price": 25,
+      "description": "民宿周边风景手绘明信片，6张套装。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    },
+    {
+      "active": false,
+      "name": "本地特产零食礼包",
+      "price": 158,
+      "description": "精选6种本地特色零食，独立包装，方便携带。",
+      "wechat": "homestay_shop",
+      "phone": "13800001234",
+      "image": ""
+    }
   ]
 }

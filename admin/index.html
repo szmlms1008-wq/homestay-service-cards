@@ -194,6 +194,10 @@ body {
   <a data-tab="food" onclick="switchTab('food')">🍜 周边小吃</a>
   <a data-tab="products" onclick="switchTab('products')">🛍️ 民宿好物</a>
   <a data-tab="tips" onclick="switchTab('tips')">💡 温馨提示</a>
+  <a data-tab="facilities" onclick="switchTab('facilities')">🏊 酒店设施</a>
+  <a data-tab="business" onclick="switchTab('business')">💼 商务服务</a>
+  <a data-tab="nearby" onclick="switchTab('nearby')">🛒 周边便利</a>
+  <a data-tab="modules" onclick="switchTab('modules')">⚙️ 模块管理</a>
   <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
 </div>
 
@@ -254,9 +258,15 @@ function bindUpload(selector, hiddenId, previewId) {
 // ======== Tab: 民宿简介 ========
 async function loadHomestay() {
   const d = await fetchJSON('/api/admin/homestay');
+  const types = [['homestay','🏡 民宿'],['hotel','🏨 酒店'],['apartment','🏢 公寓']];
   document.getElementById('mainContent').innerHTML = `
-    <h1>🏡 民宿简介</h1>
-    <div class="fg"><label>民宿名称</label><input type="text" id="f_name" value="${esc(d.name)}"></div>
+    <h1>🏡 基本信息</h1>
+    <div class="fg"><label>业态类型</label>
+      <select id="f_propertyType" class="type-select" style="padding:10px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;width:100%;background:var(--surface-card);">
+        ${types.map(([v,label]) => `<option value="${v}" ${d.propertyType===v?'selected':''}>${label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fg"><label>名称</label><input type="text" id="f_name" value="${esc(d.name)}"></div>
     <div class="fg"><label>Logo 图片 <span class="hint">（推荐 200×200px）</span></label>
       <input type="file" accept="image/*" id="fu_logo">
       <input type="hidden" id="f_logo" value="${esc(d.logo||'')}">
@@ -277,6 +287,7 @@ async function loadHomestay() {
 
 async function saveHomestay() {
   const data = {
+    propertyType: document.getElementById('f_propertyType').value,
     name: document.getElementById('f_name').value,
     logo: document.getElementById('f_logo').value,
     coverImage: document.getElementById('f_coverImage').value,
@@ -647,6 +658,165 @@ async function deleteMsg(id) {
   loadMessages();
 }
 
+// ======== Tab: 酒店设施 ========
+function facilitiesAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新设施 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>`;
+}
+
+async function loadFacilities() {
+  const d = await fetchJSON('/api/admin/facilities');
+  let html = `<h1>🏊 酒店设施</h1><div class="dyn-list" id="facList">`;
+  d.items.forEach((f, i) => {
+    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(f.name)}" data-field="name"></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(f.description)}</textarea></div>
+    </div>`;
+  });
+  html += `</div>${saveBtnRow('facList','facilities','items')}`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======== Tab: 商务服务 ========
+function businessAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新服务 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>`;
+}
+
+async function loadBusiness() {
+  const d = await fetchJSON('/api/admin/business');
+  let html = `<h1>💼 商务服务</h1><div class="dyn-list" id="bizList">`;
+  d.items.forEach((b, i) => {
+    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(b.name)}" data-field="name"></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(b.description)}</textarea></div>
+    </div>`;
+  });
+  html += `</div>${saveBtnRow('bizList','business','items')}`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======== Tab: 周边便利 ========
+function nearbyAddTemplate(n) {
+  return `<div class="dyn-header"><strong>新地点 ${n+1}</strong>${delBtn()}</div>
+    <div class="fg"><label>名称（含emoji）</label><input type="text" value="" data-field="name"></div>
+    <div class="fg"><label>描述</label><textarea data-field="description"></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="30.12" data-field="lat"></div>
+      <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="119.57" data-field="lng"></div>
+    </div>`;
+}
+
+async function loadNearby() {
+  const d = await fetchJSON('/api/admin/nearby');
+  let html = `<h1>🛒 周边便利</h1><div class="dyn-list" id="nearList">`;
+  d.items.forEach((n, i) => {
+    html += `<div class="dyn-item"><div class="dyn-header"><strong>${i+1}</strong>${delBtn()}</div>
+      <div class="fg"><label>名称（含emoji）</label><input type="text" value="${esc(n.name)}" data-field="name"></div>
+      <div class="fg"><label>描述</label><textarea data-field="description">${esc(n.description)}</textarea></div>
+      <div class="fg-row">
+        <div class="fg"><label>纬度 (lat)</label><input type="number" step="any" value="${n.lat||30.12}" data-field="lat"></div>
+        <div class="fg"><label>经度 (lng)</label><input type="number" step="any" value="${n.lng||119.57}" data-field="lng"></div>
+      </div>
+    </div>`;
+  });
+  html += `</div>${saveBtnRow('nearList','nearby','items')}`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======== Tab: 模块管理 ========
+const ALL_MODULES = [
+  { id: 'homestay',    label: '🏡 住宿简介', types: ['homestay','hotel','apartment'] },
+  { id: 'guide',       label: '🚪 入住导引', types: ['homestay','apartment'] },
+  { id: 'attractions', label: '🗺️ 景区攻略', types: ['homestay'] },
+  { id: 'routes',      label: '📍 到达路线', types: ['homestay','hotel','apartment'] },
+  { id: 'food',        label: '🍜 周边小吃', types: ['homestay','hotel'] },
+  { id: 'products',    label: '🛍️ 好物推荐', types: ['homestay'] },
+  { id: 'tips',        label: '💡 温馨提示', types: ['homestay','hotel','apartment'] },
+  { id: 'facilities',  label: '🏊 酒店设施', types: ['hotel','apartment'] },
+  { id: 'business',    label: '💼 商务服务', types: ['hotel'] },
+  { id: 'nearby',      label: '🛒 周边便利', types: ['apartment'] },
+  { id: 'messages',    label: '📝 留言板',   types: ['homestay','hotel','apartment'] },
+];
+
+const TYPE_NAMES = { homestay: '🏡 民宿', hotel: '🏨 酒店', apartment: '🏢 公寓' };
+
+async function loadModules() {
+  const info = await fetchJSON('/api/admin/homestay');
+  const enabled = info.enabledModules || [];
+
+  let html = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <h1 style="margin-bottom:0;">⚙️ 模块管理</h1>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:13px;color:var(--muted);">当前业态:</span>
+        <select id="modType" style="padding:8px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;background:var(--surface-card);" onchange="switchType()">
+          ${Object.entries(TYPE_NAMES).map(([v,label]) => `<option value="${v}" ${info.propertyType===v?'selected':''}>${label}</option>`).join('')}
+        </select>
+        <span style="font-size:11px;color:var(--muted);">切换业态自动重置为默认模块</span>
+      </div>
+    </div>
+    <p class="subtitle" style="color:var(--muted);font-size:13px;margin-bottom:20px;">控制客人端显示哪些板块。默认根据业态推荐，可自由增减。</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+  `;
+
+  ALL_MODULES.forEach(m => {
+    const on = enabled.includes(m.id);
+    html += `
+      <div class="mod-item" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface-card);border-radius:var(--rounded-sm);border:1px solid var(--hairline);">
+        <div>
+          <span style="font-size:15px;font-weight:500;">${m.label}</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px;">默认: ${m.types.map(t=>TYPE_NAMES[t]||t).join(' ')}</span>
+        </div>
+        <div class="toggle ${on?'on':''}" data-mod="${m.id}" onclick="toggleModule(this)"></div>
+      </div>
+    `;
+  });
+
+  html += `</div>
+    <div style="margin-top:20px;display:flex;gap:12px;">
+      <button class="btn btn-primary" onclick="saveModules()">💾 保存模块设置</button>
+      <button class="btn btn-outline" onclick="resetModules()">🔄 重置为业态默认</button>
+    </div>`;
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+function toggleModule(el) {
+  el.classList.toggle('on');
+}
+
+async function switchType() {
+  const type = document.getElementById('modType').value;
+  const info = await fetchJSON('/api/admin/homestay');
+  // 获取该业态的默认模块
+  const defaults = {'homestay':['homestay','guide','attractions','routes','food','products','tips','messages'],'hotel':['homestay','routes','food','tips','messages','facilities','business'],'apartment':['homestay','guide','routes','tips','messages','facilities','nearby']};
+  const modules = defaults[type] || defaults.homestay;
+  // 更新后端
+  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({propertyType:type,enabledModules:modules})});
+  toast('已切换到 ' + (TYPE_NAMES[type]||type) + '，模块已重置为默认');
+  loadModules();
+}
+
+async function saveModules() {
+  const enabled = [];
+  document.querySelectorAll('.toggle.on[data-mod]').forEach(t => enabled.push(t.dataset.mod));
+  const type = document.getElementById('modType').value;
+  await fetch(API + '/api/admin/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type})});
+  toast('模块设置已保存（' + enabled.length + ' 个模块启用）');
+}
+
+async function resetModules() {
+  const type = document.getElementById('modType').value;
+  const defaults = {'homestay':['homestay','guide','attractions','routes','food','products','tips','messages'],'hotel':['homestay','routes','food','tips','messages','facilities','business'],'apartment':['homestay','guide','routes','tips','messages','facilities','nearby']};
+  const modules = defaults[type] || defaults.homestay;
+  document.querySelectorAll('.toggle[data-mod]').forEach(t => t.classList.remove('on'));
+  modules.forEach(m => { const el = document.querySelector(`.toggle[data-mod="${m}"]`); if (el) el.classList.add('on'); });
+  toast('已重置为 ' + (TYPE_NAMES[type]||type) + ' 默认（' + modules.length + ' 个模块）');
+}
+
 // ======== Router ========
 const TAB_LOADERS = {
   homestay: loadHomestay,
@@ -656,6 +826,10 @@ const TAB_LOADERS = {
   food: loadFood,
   products: loadProducts,
   tips: loadTips,
+  facilities: loadFacilities,
+  business: loadBusiness,
+  nearby: loadNearby,
+  modules: loadModules,
   messages: loadMessages
 };
 

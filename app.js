@@ -10,7 +10,14 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 const ADMIN_USER = 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const VALID_MODULES = ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips'];
+const VALID_MODULES = ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips', 'facilities', 'business', 'nearby'];
+
+// 业态 → 默认模块映射
+const TYPE_MODULES = {
+  homestay:   ['homestay', 'guide', 'attractions', 'routes', 'food', 'products', 'tips', 'messages'],
+  hotel:      ['homestay', 'routes', 'food', 'tips', 'messages', 'facilities', 'business'],
+  apartment:  ['homestay', 'guide', 'routes', 'tips', 'messages', 'facilities', 'nearby'],
+};
 
 // ===== Shared helpers =====
 function readData(filename) {
@@ -46,6 +53,13 @@ const upload = multer({
 app.use(express.json());
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// 返回当前启用的模块列表
+app.get('/api/modules', (_req, res) => {
+  const info = readData('homestay.json');
+  const modules = info.enabledModules || TYPE_MODULES[info.propertyType] || TYPE_MODULES.homestay;
+  res.json({ propertyType: info.propertyType || 'homestay', modules });
+});
+
 // ====== Guest API (no auth) ======
 app.get('/api/homestay', (_req, res) => res.json(readData('homestay.json')));
 app.get('/api/guide', (_req, res) => res.json(readData('guide.json')));
@@ -59,6 +73,9 @@ app.get('/api/products', (_req, res) => {
 });
 
 app.get('/api/tips', (_req, res) => res.json(readData('tips.json')));
+app.get('/api/facilities', (_req, res) => res.json(readData('facilities.json')));
+app.get('/api/business', (_req, res) => res.json(readData('business.json')));
+app.get('/api/nearby', (_req, res) => res.json(readData('nearby.json')));
 
 app.get('/api/messages', (_req, res) => {
   const data = readData('messages.json');
@@ -103,6 +120,19 @@ app.get('/api/admin/:module', basicAuth, (req, res) => {
 
 app.put('/api/admin/:module', basicAuth, (req, res) => {
   const mod = req.params.module;
+  if (mod === 'modules') {
+    // 管理启用模块列表
+    const { enabledModules, propertyType } = req.body;
+    const info = readData('homestay.json');
+    if (enabledModules) info.enabledModules = enabledModules;
+    if (propertyType) {
+      info.propertyType = propertyType;
+      // 切换业态时自动重置为默认模块
+      if (!enabledModules) info.enabledModules = [...(TYPE_MODULES[propertyType] || TYPE_MODULES.homestay)];
+    }
+    writeData('homestay.json', info);
+    return res.json({ success: true, enabledModules: info.enabledModules, propertyType: info.propertyType });
+  }
   if (!VALID_MODULES.includes(mod)) return res.status(404).json({ error: '模块不存在' });
   writeData(mod + '.json', req.body);
   res.json({ success: true });
