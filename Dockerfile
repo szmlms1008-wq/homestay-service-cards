@@ -8,5 +8,4 @@ COPY . .
 ENV PORT=3000
 EXPOSE 3000
 
-RUN chmod +x /app/start.sh
-CMD ["/app/start.sh"]
+CMD ["node", "app.js"]
