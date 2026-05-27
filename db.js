@@ -82,6 +82,7 @@ const migrations = [
       created_at TEXT DEFAULT (datetime('now','localtime'))
     );
   `},
+	  { version: 2, sql: `ALTER TABLE properties ADD COLUMN theme TEXT DEFAULT 'default'` },
 ];
 
 const currentVersion = db.prepare('SELECT MAX(version) as v FROM schema_version').get().v || 0;
@@ -178,7 +179,8 @@ const stmts = {
   deleteProperty: db.prepare('DELETE FROM properties WHERE id = ?'),
   updatePropertyModules: db.prepare('UPDATE properties SET enabled_modules = ? WHERE slug = ?'),
   updatePropertyType: db.prepare('UPDATE properties SET property_type = ? WHERE slug = ?'),
-  updatePropertyInfo: db.prepare('UPDATE properties SET name=?, property_type=?, contact_phone=?, contact_wechat=? WHERE slug=?'),
+	  updatePropertyInfo: db.prepare('UPDATE properties SET name=?, property_type=?, contact_phone=?, contact_wechat=?, theme=? WHERE slug=?'),
+	  updatePropertyTheme: db.prepare('UPDATE properties SET theme=? WHERE slug=?'),
   userProperties: db.prepare('SELECT * FROM properties WHERE owner_user_id = ? AND is_active = 1'),
 
   // Applications

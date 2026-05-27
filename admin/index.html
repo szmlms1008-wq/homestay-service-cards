@@ -4,17 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>平台管理后台</title>
+<link rel="stylesheet" href="/design-system.css">
 <style>
-:root {
-  --primary: #0d9488; --primary-dark: #0f766e; --bg: #f5f6f8;
-  --card: #fff; --ink: #1a1a2e; --muted: #889999; --border: #eef0f4;
-  --rounded: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.04);
-  --font: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-}
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:var(--font); background:var(--bg); color:var(--ink); display:flex; min-height:100vh; }
+body { font-family:var(--font-sans); background:var(--bg); color:var(--ink); display:flex; min-height:100vh; }
 .sidebar {
-  width:220px; background:var(--card); border-right:1px solid var(--border);
+  width:220px; background:var(--surface); border-right:1px solid var(--border);
   padding:20px 0; flex-shrink:0;
 }
 .sidebar h2 { font-size:16px; padding:0 20px 16px; }
@@ -26,10 +21,10 @@ body { font-family:var(--font); background:var(--bg); color:var(--ink); display:
 .sidebar a:hover, .sidebar a.active { color:var(--primary); background:var(--bg); border-left-color:var(--primary); }
 .main { flex:1; padding:28px; overflow-y:auto; max-width:960px; }
 .main h1 { font-size:20px; margin-bottom:22px; }
-.card { background:var(--card); border-radius:var(--rounded); padding:20px; box-shadow:var(--shadow); margin-bottom:16px; }
+.card { background:var(--surface); border-radius:var(--radius-md); padding:20px; box-shadow:var(--shadow-sm); margin-bottom:16px; }
 .card h3 { font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
-.stat { background:var(--card); border-radius:var(--rounded); padding:18px; box-shadow:var(--shadow); text-align:center; }
+.stat { background:var(--surface); border-radius:var(--radius-md); padding:18px; box-shadow:var(--shadow-sm); text-align:center; }
 .stat .num { font-size:28px; font-weight:800; color:var(--primary); }
 .stat .lbl { font-size:12px; color:var(--muted); margin-top:4px; }
 .btn {
@@ -38,12 +33,12 @@ body { font-family:var(--font); background:var(--bg); color:var(--ink); display:
 }
 .btn-primary { background:var(--primary); color:#fff; }
 .btn-primary:hover { background:var(--primary-dark); }
-.btn-danger { background:#c62828; color:#fff; }
-.btn-danger:hover { background:#b71c1c; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { background:#b91c1c; }
 .btn-sm { padding:4px 12px; font-size:11px; }
 input, select {
   padding:8px 12px; border:1px solid var(--border); border-radius:8px;
-  font-size:13px; outline:none; background:var(--card);
+  font-size:13px; outline:none; background:var(--surface);
 }
 input:focus, select:focus { border-color:var(--primary); }
 table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -54,7 +49,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
   padding:10px 20px; border-radius:20px; font-size:13px; z-index:9999; display:none;
 }
 .pill { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:500; }
-.pill-homestay { background:#f0fdfa; color:#0d9488; }
+.pill-homestay { background:var(--success-bg); color:var(--primary); }
 .pill-hotel { background:#eff6ff; color:#2563eb; }
 .pill-apartment { background:#faf5ff; color:#7c3aed; }
 .gap { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -67,7 +62,7 @@ td { padding:10px 12px; border-bottom:1px solid var(--bg); }
     width:100%; display:flex; overflow-x:auto;
     padding:10px 6px 12px;
     flex-shrink:0; gap:2px;
-    background:var(--card); border-bottom:1px solid var(--border);
+    background:var(--surface); border-bottom:1px solid var(--border);
     position:sticky; top:0; z-index:100;
     -webkit-overflow-scrolling:touch;
   }
@@ -164,7 +159,7 @@ if (!TOKEN || !USER || USER.role !== 'admin') {
         <input id="lp" type="password" placeholder="密码" autocomplete="current-password">
         <button class="btn btn-primary" type="submit">登 录</button>
       </form>
-      <p id="lerr" style="color:#c62828;margin-top:8px;font-size:13px;"></p>
+      <p id="lerr" style="color:var(--danger);margin-top:8px;font-size:13px;"></p>
     </div>`;
   document.getElementById('loginFm').onsubmit = async (e) => {
     e.preventDefault();
@@ -208,12 +203,12 @@ async function loadOverview() {
   // 今日实时面板
   if (stats.date) {
     var ok = stats.errors === 0 && stats.loginFails < 5;
-    html += '<div class="card" style="border-left:4px solid ' + (ok ? '#7da891' : '#e65100') + ';margin-bottom:16px;">' +
+    html += '<div class="card" style="border-left:4px solid ' + (ok ? '#7da891' : 'var(--warning)') + ';margin-bottom:16px;">' +
       '<h3>' + (ok ? '🟢 系统运行正常' : '🟠 需要关注') + '</h3>' +
       '<div class="stats" style="grid-template-columns:repeat(5,1fr);">' +
       '<div class="stat"><div class="num">' + stats.visits + '</div><div class="lbl">今日访问</div></div>' +
-      '<div class="stat"><div class="num" style="color:' + (stats.loginFails>10?'#c62828':'') + '">' + stats.loginFails + '</div><div class="lbl">登录失败</div></div>' +
-      '<div class="stat"><div class="num" style="color:' + (stats.errors>0?'#c62828':'') + '">' + stats.errors + '</div><div class="lbl">服务端错误</div></div>' +
+      '<div class="stat"><div class="num" style="color:' + (stats.loginFails>10?'var(--danger)':'') + '">' + stats.loginFails + '</div><div class="lbl">登录失败</div></div>' +
+      '<div class="stat"><div class="num" style="color:' + (stats.errors>0?'var(--danger)':'') + '">' + stats.errors + '</div><div class="lbl">服务端错误</div></div>' +
       '<div class="stat"><div class="num">' + upH + 'h' + upM + 'm</div><div class="lbl">运行时间</div></div>' +
       '<div class="stat"><div class="num">' + stats.pendingApps + '</div><div class="lbl">待审核</div></div>' +
       '</div></div>';
@@ -279,7 +274,7 @@ async function loadProperties() {
       </div>
       <div class="gap">
         <button class="btn btn-primary" onclick="createProperty()">✅ 创建</button>
-        <button class="btn" onclick="document.getElementById('createForm').style.display='none'" style="background:#e5e7eb;">取消</button>
+        <button class="btn" onclick="document.getElementById('createForm').style.display='none'" style="background:var(--border);">取消</button>
       </div>
     </div>
     <table>
@@ -296,7 +291,7 @@ async function loadProperties() {
             <td>${ownerName}</td>
             <td>${p.created_at||''}</td>
             <td class="gap">
-              <a href="/p/${p.slug}" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">👁 预览</a>
+              <a href="/p/${p.slug}" target="_blank" class="btn btn-sm" style="background:var(--border);text-decoration:none;">👁 预览</a>
               <a href="/p/${p.slug}/admin" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">✏️ 管理</a>
               <button class="btn btn-sm btn-danger" onclick="deleteProperty(${p.id},'${p.slug}')">🗑</button>
             </td>
@@ -319,8 +314,14 @@ window.createProperty = async () => {
   };
   if (!body.slug || !body.name) return toast('slug 和名称必填');
   const r = await api('POST', '/api/admin/properties', body);
-  if (r.success) { toast('店铺 ' + body.slug + ' 创建成功！访问: /p/' + body.slug); loadProperties(); }
-  else toast(r.error || '创建失败');
+  if (r.success) {
+    if (r.merchant) {
+      toast('店铺 ' + body.slug + ' 创建成功！商家账号: ' + r.merchant.username + ' / ' + r.merchant.password);
+    } else {
+      toast('店铺 ' + body.slug + ' 创建成功！访问: /p/' + body.slug);
+    }
+    loadProperties();
+  } else toast(r.error || '创建失败');
 };
 
 window.deleteProperty = async (id, slug) => {
@@ -353,8 +354,8 @@ async function loadApplications() {
   const pending = merged.filter(function(a) { return a.status === 'pending'; }).length;
 
   var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
-    '<h1 style="margin-bottom:0;">📩 入驻申请 ' + (pending ? '<span style="font-size:14px;color:#e65100;">（' + pending + ' 条待审核）</span>' : '') + '</h1>' +
-    '<a href="/apply" target="_blank" class="btn btn-sm" style="background:#e5e7eb;text-decoration:none;">🔗 申请页面</a></div>';
+    '<h1 style="margin-bottom:0;">📩 入驻申请 ' + (pending ? '<span style="font-size:14px;color:var(--warning);">（' + pending + ' 条待审核）</span>' : '') + '</h1>' +
+    '<a href="/apply" target="_blank" class="btn btn-sm" style="background:var(--border);text-decoration:none;">🔗 申请页面</a></div>';
   html += '<table><thead><tr><th>店铺名</th><th>业态</th><th>联系方式</th><th>申请次数</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody>';
   if (merged.length === 0) {
     html += '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">暂无申请</td></tr>';
@@ -365,7 +366,7 @@ async function loadApplications() {
       html += '<tr><td><strong>' + a.store_name + '</strong></td>' +
         '<td>' + a.property_type + '</td>' +
         '<td style="font-size:12px;">' + contact + '</td>' +
-        '<td>' + (a.count > 1 ? '<span style="color:#e65100;font-weight:600;">' + a.count + ' 次</span>' : '1 次') + '</td>' +
+        '<td>' + (a.count > 1 ? '<span style="color:var(--warning);font-weight:600;">' + a.count + ' 次</span>' : '1 次') + '</td>' +
         '<td>' + (statusMap[a.status]||a.status) + '</td>' +
         '<td style="font-size:11px;color:var(--muted);">' + ((a.admin_note||'').replace('账号: ','').replace(' / 密码: ',' / ')) + '</td>' +
         '<td>';
@@ -390,12 +391,12 @@ window.approveApp = async (id) => {
   if (r.success) {
     const base = window.location.origin;
     document.getElementById('approveResult').innerHTML = `
-      <div style="background:#f0fdfa;border:1px solid #0d9488;border-radius:10px;padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <span style="font-weight:600;color:#0f766e;white-space:nowrap;">✅ ${r.store_name}</span>
+      <div style="background:var(--success-bg);border:1px solid var(--primary);border-radius:10px;padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span style="font-weight:600;color:var(--primary-dark);white-space:nowrap;">✅ ${r.store_name}</span>
         <span style="font-size:12px;color:var(--muted);">账号</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.username}</code>
         <span style="font-size:12px;color:var(--muted);">密码</span><code style="font-size:13px;background:#fff;padding:2px 6px;border-radius:4px;">${r.password}</code>
         <button class="btn btn-sm btn-primary" onclick="copyMerchantInfo('${escOnclick(r.username)}','${escOnclick(r.password)}','${base}/apply','${base}/p/${escOnclick(r.slug)}')">📋 复制</button>
-        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
+        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:var(--border);">✕</button>
       </div>`;
     setTimeout(() => loadApplications(), 500);
   }
@@ -449,12 +450,12 @@ ${app.name} 您好，您在「宿说」提交的店铺「${app.store_name}」入
 
 如有疑问，可联系客服沟通。`;
     document.getElementById('approveResult').innerHTML = `
-      <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:10px;padding:14px 16px;margin-top:12px;">
-        <span style="font-weight:600;color:#c62828;">❌ 已拒绝 ${app.store_name}</span>
+      <div style="background:var(--danger-bg);border:1px solid var(--danger);border-radius:10px;padding:14px 16px;margin-top:12px;">
+        <span style="font-weight:600;color:var(--danger);">❌ 已拒绝 ${app.store_name}</span>
         <span style="font-size:12px;color:var(--muted);margin-left:8px;">${note}</span>
         <button class="btn btn-sm btn-danger" onclick="copyRejectNote('${escOnclick(text).replace(/\n/g,'\\n')}')">📋 复制通知发给商家</button>
-        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:#e5e7eb;">✕</button>
-        <p id="copyMsg" style="font-size:12px;color:#0d9488;margin-top:6px;"></p>
+        <button class="btn btn-sm" onclick="this.parentElement.remove()" style="background:var(--border);">✕</button>
+        <p id="copyMsg" style="font-size:12px;color:var(--primary);margin-top:6px;"></p>
       </div>`;
   }
   loadApplications();
@@ -477,7 +478,7 @@ window.showPwChange = () => {
       <form id="pwFm" style="margin-top:20px;">
         <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">原密码</label><input id="oldPw" type="password" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
         <div style="margin-bottom:12px;"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">新密码（至少4位）</label><input id="newPw" type="password" required minlength="4" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
-        <div class="gap"><button class="btn btn-primary" type="submit">💾 保存</button><button class="btn" type="button" onclick="switchTab('overview')" style="background:#e5e7eb;">取消</button></div>
+        <div class="gap"><button class="btn btn-primary" type="submit">💾 保存</button><button class="btn" type="button" onclick="switchTab('overview')" style="background:var(--border);">取消</button></div>
       </form>
       <p id="pwMsg" style="margin-top:10px;font-size:13px;"></p>
     </div>`;
@@ -486,7 +487,7 @@ window.showPwChange = () => {
     const r = await fetch('/api/me/password', { method:'PUT', headers:authHeaders(), body:JSON.stringify({oldPassword:document.getElementById('oldPw').value,newPassword:document.getElementById('newPw').value}) });
     const d = await r.json();
     const el = document.getElementById('pwMsg');
-    el.style.color = d.success ? '#43a047' : '#c62828';
+    el.style.color = d.success ? '#43a047' : 'var(--danger)';
     el.textContent = d.success ? '✅ 密码修改成功' : (d.error || '修改失败');
   };
 };
@@ -524,7 +525,7 @@ async function loadFeedback() {
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
           👤 ${f.username||'?'} ${f.property_slug ? '· 店铺 '+f.property_slug : ''} ${f.contact ? '· 📞 '+f.contact : ''}
         </div>
-        ${f.admin_reply ? `<div style="background:#f0fdfa;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:8px;">✅ 已回复：${f.admin_reply}</div>` : ''}
+        ${f.admin_reply ? `<div style="background:var(--success-bg);padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:8px;">✅ 已回复：${f.admin_reply}</div>` : ''}
         ${f.status === 'open' ? `
           <div class="gap">
             <input id="reply_${f.id}" type="text" placeholder="输入回复..." style="flex:1;padding:6px 10px;font-size:12px;">
@@ -565,7 +566,7 @@ function loadErrors() {
     } else {
       html += '<table><thead><tr><th>时间</th><th>类型</th><th>接口</th><th>错误信息</th></tr></thead><tbody>';
       logs.forEach(function(l) {
-        var color = (l.error_type === 'http_500' || l.error_type === 'uncaught') ? '#c62828' : '#e65100';
+        var color = (l.error_type === 'http_500' || l.error_type === 'uncaught') ? 'var(--danger)' : 'var(--warning)';
         html += '<tr><td style="white-space:nowrap;font-size:12px;">' + (l.created_at||'') + '</td>' +
           '<td><span style="color:' + color + ';font-size:11px;font-weight:600;">' + (l.error_type||'') + '</span></td>' +
           '<td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (l.stack||'-') + '</td>' +

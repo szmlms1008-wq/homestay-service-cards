@@ -3,54 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>宿说 - 入驻/登录</title>
+<title>宿说 - 商家登录</title>
+<link rel="stylesheet" href="/design-system.css">
 <style>
-:root {
-  --primary: #0d9488; --primary-dark: #0f766e;
-  --bg: #f5f6f8; --card: #fff; --ink: #1a1a2e;
-  --muted: #889999; --border: #eef0f4; --rounded: 14px;
-}
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background: linear-gradient(160deg, #f0fdfa 0%, #f5f6f8 50%, #e6f7f5 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-.card { background:var(--card); border-radius:var(--rounded); padding:36px 32px; max-width:460px; width:100%; box-shadow:0 8px 32px rgba(0,0,0,0.08); }
-h1 { font-size:24px; color:var(--ink); text-align:center; margin-bottom:4px; }
-.sub { text-align:center; color:var(--muted); font-size:14px; margin-bottom:20px; }
+.card { background:var(--surface); border-radius:var(--radius-md); padding:36px 32px; max-width:420px; width:100%; box-shadow:0 8px 32px rgba(0,0,0,0.08); position:relative; overflow:hidden; }
+h1 { font-size:22px; color:var(--ink); text-align:center; margin-bottom:4px; }
+.sub { text-align:center; color:var(--muted); font-size:14px; margin-bottom:24px; }
 .fg { margin-bottom:14px; }
 .fg label { display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:4px; }
 .fg input, .fg select { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:10px; font-size:14px; outline:none; background:#f9fafb; transition:border-color 0.15s; }
 .fg input:focus, .fg select:focus { border-color:var(--primary); background:#fff; }
 .btn { width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; margin-top:4px; transition:background 0.15s; }
 .btn:hover { background:var(--primary-dark); }
-.success { text-align:center; padding:20px 0; }
-.success .icon { font-size:56px; margin-bottom:12px; }
-.success h2 { font-size:20px; color:var(--ink); margin-bottom:8px; }
-.success p { color:var(--muted); font-size:14px; line-height:1.7; }
-.err { color:#c62828; font-size:13px; text-align:center; margin-top:6px; min-height:18px; }
-.tabs { display:flex; background:#f5f6f8; border-radius:10px; padding:4px; margin-bottom:20px; }
-.tab { flex:1; text-align:center; padding:10px; border-radius:8px; cursor:pointer; font-size:15px; font-weight:500; transition:all 0.15s; color:var(--muted); }
-.tab.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); color:var(--ink); font-weight:600; }
+.err { color:#c62828; font-size:13px; text-align:center; margin-top:8px; min-height:18px; }
+.success-banner { background:var(--success-bg); color:var(--success); padding:10px 14px; border-radius:8px; font-size:13px; text-align:center; margin-bottom:16px; }
+.back-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--muted); cursor:pointer; margin-bottom:16px; border:none; background:none; }
+.back-link:hover { color:var(--primary); }
+.apply-hint { text-align:center; margin-top:24px; padding-top:20px; border-top:1px solid var(--border-light); }
+.apply-hint span { font-size:13px; color:var(--muted); }
+.apply-hint a { color:var(--primary); font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; }
+.apply-hint a:hover { text-decoration:underline; }
+.panels { position:relative; }
+.panel { transition: opacity 0.25s, transform 0.25s; }
+.panel-hidden { display:none; }
 @media (max-width:480px) {
   .card { padding:24px 18px; border-radius:12px; }
   h1 { font-size:20px; }
-  .sub { font-size:13px; }
   .fg input, .fg select { font-size:16px; }
-  .tab { font-size:14px; padding:8px; }
 }
 </style>
 </head>
 <body>
 <div class="card" id="formCard">
-  <div style="font-size:40px;text-align:center;margin-bottom:8px;">🏡</div>
 
-  <!-- 切换 tabs -->
-  <div class="tabs">
-    <div class="tab active" id="tabApply" onclick="switchTab('apply')">📝 申请入驻</div>
-    <div class="tab" id="tabLogin" onclick="switchTab('login')">🔐 商家登录</div>
+  <!-- ========== 登录面板（默认） ========== -->
+  <div id="panelLogin" class="panel">
+    <div style="font-size:40px;text-align:center;margin-bottom:8px;">🏡</div>
+    <h1>商家登录</h1>
+    <p class="sub">登录管理你的服务卡片</p>
+    <div id="loginBanner" style="display:none;"></div>
+    <form id="loginForm">
+      <div class="fg"><label>用户名</label><input id="lUser" type="text" placeholder="输入用户名" required></div>
+      <div class="fg"><label>密码</label><input id="lPass" type="password" placeholder="输入密码" required></div>
+      <button class="btn" type="submit">登 录</button>
+    </form>
+    <p class="err" id="lMsg"></p>
+    <div class="apply-hint">
+      <span>还没有账号？</span>
+      <a onclick="showApply()">申请入驻 →</a>
+    </div>
   </div>
 
-  <!-- 申请表单 -->
-  <div id="panelApply">
-    <p class="sub">开通你的专属服务卡片，让客人住得更舒心</p>
+  <!-- ========== 申请面板（隐藏） ========== -->
+  <div id="panelApply" class="panel panel-hidden">
+    <button class="back-link" onclick="showLogin()">← 返回登录</button>
+    <div style="font-size:32px;text-align:center;margin-bottom:4px;">📝</div>
+    <h1>申请入驻</h1>
+    <p class="sub">开通你的专属服务卡片，30秒搞定</p>
     <form id="applyForm">
       <div class="fg"><label>你的姓名 *</label><input id="fName" type="text" placeholder="怎么称呼你" required></div>
       <div class="fg"><label>店铺名称 *</label><input id="fStore" type="text" placeholder="你的民宿/酒店叫啥名" required></div>
@@ -64,109 +75,87 @@ h1 { font-size:24px; color:var(--ink); text-align:center; margin-bottom:4px; }
     <p class="err" id="msg"></p>
   </div>
 
-  <!-- 登录表单 -->
-  <div id="panelLogin" style="display:none;">
-    <p class="sub">已有账号？直接登录管理你的店铺</p>
-    <form id="loginForm">
-      <div class="fg"><label>用户名</label><input id="lUser" type="text" placeholder="输入用户名" required></div>
-      <div class="fg"><label>密码</label><input id="lPass" type="password" placeholder="输入密码" required></div>
-      <button class="btn" type="submit">登 录</button>
-    </form>
-    <p class="err" id="lMsg"></p>
-  </div>
 </div>
 
 <script>
-let currentTab = 'apply';
+const $ = id => document.getElementById(id);
 
-// URL 参数自动填充
-const params = new URLSearchParams(window.location.search);
-const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-const prefillUser = params.get('u') || '';
-const prefillPass = params.get('p') || hashParams.get('p') || '';
-const prefillTab = params.get('t') || '';
-
-if (prefillTab === 'login' || prefillUser) {
-  currentTab = 'login';
-  setTimeout(() => {
-    switchTab('login');
-    if (prefillUser) document.getElementById('lUser').value = prefillUser;
-    if (prefillPass) document.getElementById('lPass').value = prefillPass;
-  }, 100);
+function showApply() {
+  $('panelLogin').classList.add('panel-hidden');
+  $('panelApply').classList.remove('panel-hidden');
+  $('lMsg').textContent = '';
 }
 
-window.switchTab = function(tab) {
-  currentTab = tab;
-  document.getElementById('tabApply').classList.toggle('active', tab === 'apply');
-  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
-  document.getElementById('panelApply').style.display = tab === 'apply' ? '' : 'none';
-  document.getElementById('panelLogin').style.display = tab === 'login' ? '' : 'none';
-  document.getElementById('msg').textContent = '';
-  document.getElementById('lMsg').textContent = '';
-};
+function showLogin(msg) {
+  $('panelApply').classList.add('panel-hidden');
+  $('panelLogin').classList.remove('panel-hidden');
+  $('msg').textContent = '';
+  if (msg) {
+    $('loginBanner').style.display = '';
+    $('loginBanner').className = 'success-banner';
+    $('loginBanner').textContent = msg;
+  }
+}
+
+// URL 参数：支持预填和直接切到登录
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const u = params.get('u'), t = params.get('t');
+  if (u) { setTimeout(() => { $('lUser').value = u; }, 100); }
+  // 默认就是登录面板，无需切换
+})();
 
 // 申请提交
-document.getElementById('applyForm').onsubmit = async (e) => {
+$('applyForm').onsubmit = async (e) => {
   e.preventDefault();
   const body = {
-    name: document.getElementById('fName').value.trim(),
-    store_name: document.getElementById('fStore').value.trim(),
-    property_type: document.getElementById('fType').value,
-    phone: document.getElementById('fPhone').value.trim(),
-    wechat: document.getElementById('fWechat').value.trim(),
+    name: $('fName').value.trim(),
+    store_name: $('fStore').value.trim(),
+    property_type: $('fType').value,
+    phone: $('fPhone').value.trim(),
+    wechat: $('fWechat').value.trim(),
   };
-  if (!body.name || !body.store_name) {
-    document.getElementById('msg').textContent = '请填写姓名和店铺名称';
-    return;
-  }
-  document.getElementById('msg').textContent = '提交中...';
+  if (!body.name || !body.store_name) { $('msg').textContent = '请填写姓名和店铺名称'; return; }
+  $('msg').textContent = '提交中...';
   const r = await fetch('/api/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   const d = await r.json();
   if (d.success) {
-    document.getElementById('panelApply').innerHTML = `
-      <div class="success">
-        <div class="icon">✅</div>
-        <h2>申请已提交</h2>
-        <p>我们会在 24 小时内审核，通过后短信/微信通知你。</p>
-        <p style="margin-top:12px;">审核通过后，点下方「商家登录」用分配的账号登录。</p>
-        <button class="btn" onclick="switchTab('login')" style="width:200px;margin:12px auto 0;">🔐 去登录</button>
-      </div>`;
+    // 回到登录页，显示成功横幅
+    $('applyForm').reset();
+    showLogin('✅ 申请已提交！审核通过后我们会通知你，届时用分配的账号在此登录。');
   } else {
-    document.getElementById('msg').textContent = d.error || '提交失败';
+    $('msg').textContent = d.error || '提交失败，请重试';
   }
 };
 
-// 登录提交 → 自动跳转到对应后台
-document.getElementById('loginForm').onsubmit = async (e) => {
+// 登录提交
+$('loginForm').onsubmit = async (e) => {
   e.preventDefault();
-  const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('lUser').value,password:document.getElementById('lPass').value}) });
+  $('lMsg').textContent = '登录中...';
+  const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:$('lUser').value,password:$('lPass').value}) });
   const d = await r.json();
   if (d.token) {
     localStorage.setItem('card_token', d.token);
     localStorage.setItem('card_user', JSON.stringify(d.user));
-    // 管理员 → 总后台，商家 → 自动跳自己的店铺后台
     if (d.user.role === 'admin') {
       window.location.href = '/admin';
     } else {
-      // 商家 → 查自己的店铺
       const props = await fetch('/api/me/properties', { headers: {'Authorization': 'Bearer ' + d.token} });
       const propsData = await props.json();
       if (propsData.length > 0) {
-        // 有店铺 → 直接进入分后台
         window.location.href = '/p/' + propsData[0].slug + '/admin';
       } else {
-        // 还没分配店铺 → 显示等待审核
-        document.getElementById('panelLogin').innerHTML = `
-          <div class="success">
-            <div class="icon">⏳</div>
+        $('panelLogin').innerHTML = `
+          <div style="text-align:center;padding:20px 0;">
+            <div style="font-size:48px;margin-bottom:12px;">⏳</div>
             <h2>登录成功</h2>
-            <p>你的店铺正在审核中，审核通过后我们会通知你。</p>
-            <p style="margin-top:12px;font-size:13px;color:var(--muted);">如有疑问请联系客服</p>
+            <p style="color:var(--muted);margin:8px 0;">你的店铺正在审核中，审核通过后我们会通知你。</p>
+            <p style="font-size:13px;color:var(--muted-light);">届时在此登录即可管理店铺</p>
           </div>`;
       }
     }
   } else {
-    document.getElementById('lMsg').textContent = d.error || '登录失败';
+    $('lMsg').textContent = d.error || '登录失败';
   }
 };
 </script>

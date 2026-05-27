@@ -17,13 +17,15 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { er
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET_FILE = path.join(__dirname, 'data', '.jwt_secret');
 const JWT_SECRET = (() => {
   const key = process.env.JWT_SECRET;
   if (key) return key;
   const crypto = require('crypto');
+  // 持久化：先从文件读取，不存在则生成并保存
+  try { if (fs.existsSync(JWT_SECRET_FILE)) return fs.readFileSync(JWT_SECRET_FILE, 'utf-8').trim(); } catch(e) {}
   const generated = crypto.randomBytes(32).toString('hex');
-  console.warn('[警告] 未设置 JWT_SECRET 环境变量，已随机生成临时密钥');
-  console.warn('[提示] 生产环境请务必设置 JWT_SECRET，否则重启后所有用户需重新登录');
+  try { fs.writeFileSync(JWT_SECRET_FILE, generated, { mode: 0o600 }); } catch(e) {}
   return generated;
 })();
 const FEATURE_RADAR = process.env.FEATURE_RADAR === 'true';
@@ -111,13 +113,21 @@ app.post('/api/apply', (req, res) => {
 });
 
 app.post('/api/auth/register', authLimiter, async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, property_slug } = req.body;
   if (!username || !password || username.length < 2 || password.length < 4) return res.status(400).json({ error: '用户名≥2位，密码≥4位' });
   if (stmts.findByUsername.get(username)) return res.status(409).json({ error: '用户名已存在' });
   const r = stmts.createUser.run(username, await bcrypt.hash(password, 10), 'owner');
-  const token = jwt.sign({ id: r.lastInsertRowid, username, role: 'owner' }, JWT_SECRET, { expiresIn: '7d' });
-  logAction(r.lastInsertRowid, null, 'register', { username });
-  res.json({ token, user: { id: r.lastInsertRowid, username, role: 'owner' } });
+  const userId = r.lastInsertRowid;
+  // 如果传了 property_slug 且店铺无主，自动关联
+  if (property_slug) {
+    const prop = stmts.findBySlug.get(property_slug);
+    if (prop && !prop.owner_user_id) {
+      db.prepare('UPDATE properties SET owner_user_id = ? WHERE slug = ?').run(userId, property_slug);
+    }
+  }
+  const token = jwt.sign({ id: userId, username, role: 'owner' }, JWT_SECRET, { expiresIn: '7d' });
+  logAction(userId, property_slug || null, 'register', { username });
+  res.json({ token, user: { id: userId, username, role: 'owner' } });
 });
 
 // ====== 总后台 API ======
@@ -125,15 +135,31 @@ app.get('/api/admin/properties', authRequired, adminRequired, (_req, res) => {
   res.json(stmts.allProperties.all());
 });
 
-app.post('/api/admin/properties', authRequired, adminRequired, (req, res) => {
+app.post('/api/admin/properties', authRequired, adminRequired, async (req, res) => {
   const { slug, name, property_type, owner_user_id, contact_phone, contact_wechat } = req.body;
   if (!slug || !name) return res.status(400).json({ error: 'slug 和 name 必填' });
   if (stmts.findBySlug.get(slug)) return res.status(409).json({ error: 'slug 已存在' });
   const mods = JSON.stringify(TYPE_MODULES[property_type] || TYPE_MODULES.homestay);
-  stmts.createProperty.run(slug, name, property_type || 'homestay', owner_user_id || null, contact_phone || '', contact_wechat || '', mods);
+  // 未指定 owner 时自动创建商家账号
+  let actualOwner = owner_user_id || null;
+  let merchantUser = null;
+  if (!actualOwner) {
+    const username = 'store_' + slug;
+    const password = Math.random().toString(36).slice(-8);
+    const hash = await bcrypt.hash(password, 10);
+    const existing = stmts.findByUsername.get(username);
+    if (existing) {
+      actualOwner = existing.id;
+      merchantUser = { username, password: '(已存在，使用原密码)' };
+    } else {
+      actualOwner = stmts.createUser.run(username, hash, 'owner').lastInsertRowid;
+      merchantUser = { username, password };
+    }
+  }
+  stmts.createProperty.run(slug, name, property_type || 'homestay', actualOwner, contact_phone || '', contact_wechat || '', mods);
   initPropertyData(slug, property_type || 'homestay', name);
   logAction(req.user.id, slug, 'create_property', { name, type: property_type });
-  res.json({ success: true, slug });
+  res.json({ success: true, slug, merchant: merchantUser });
 });
 
 app.delete('/api/admin/properties/:id', authRequired, adminRequired, (req, res) => {
@@ -183,6 +209,7 @@ app.get('/api/admin/applications', authRequired, adminRequired, (_req, res) => {
 });
 
 // 审核通过 → 自动创建店铺 + 分配账号
+// 修复：同一商家多次申请时，一键处理所有同名 pending 申请
 app.put('/api/admin/applications/:id', authRequired, adminRequired, async (req, res) => {
   const { status, admin_note } = req.body;
   const app = db.prepare('SELECT * FROM applications WHERE id = ?').get(req.params.id);
@@ -192,7 +219,8 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, async (req, 
     return res.json({ success: false, error: '该申请已通过审批' });
   }
 
-  stmts.updateApplication.run(status || 'approved', admin_note || '', req.params.id);
+  // 获取同名店铺的所有 pending 申请
+  const sameStorePending = db.prepare("SELECT * FROM applications WHERE store_name = ? AND status = 'pending' AND id != ?").all(app.store_name, app.id);
 
   if (status === 'approved') {
     const slug = app.store_name.replace(/[^一-龥a-zA-Z0-9]/g, '').toLowerCase().substring(0, 20) || 'store' + Date.now();
@@ -208,14 +236,24 @@ app.put('/api/admin/applications/:id', authRequired, adminRequired, async (req, 
         initPropertyData(slug, app.property_type, app.store_name);
       }
       stmts.updateApplication.run('approved', '账号: ' + username + ' / 密码: ' + password, req.params.id);
-      logAction(req.user.id, slug, 'approve_application', { applicant: app.name, store: app.store_name });
-      res.json({ success: true, username, password, slug, store_name: app.store_name });
+      // 将同名其他 pending 申请标记为重复
+      for (const dup of sameStorePending) {
+        stmts.updateApplication.run('rejected', '重复申请，已与通过记录合并', dup.id);
+      }
+      logAction(req.user.id, slug, 'approve_application', { applicant: app.name, store: app.store_name, merged: sameStorePending.length });
+      res.json({ success: true, username, password, slug, store_name: app.store_name, merged: sameStorePending.length });
     } catch (e) {
       stmts.updateApplication.run('error', e.message, req.params.id);
       res.status(500).json({ error: e.message });
     }
   } else {
-    res.json({ success: true });
+    // 拒绝：同时拒绝所有同名 pending 申请
+    stmts.updateApplication.run(status || 'rejected', admin_note || '', req.params.id);
+    for (const dup of sameStorePending) {
+      stmts.updateApplication.run(status || 'rejected', admin_note || '', dup.id);
+    }
+    logAction(req.user.id, null, 'reject_application', { store: app.store_name, count: 1 + sameStorePending.length });
+    res.json({ success: true, merged: sameStorePending.length });
   }
 });
 
@@ -246,7 +284,7 @@ app.get('/api/p/:slug/modules', (req, res) => {
   if (!prop) return res.status(404).json({ error: '店铺不存在' });
   let mods = [];
   try { mods = JSON.parse(prop.enabled_modules || '[]'); } catch (e) { mods = TYPE_MODULES.homestay; }
-  res.json({ propertyType: prop.property_type, modules: mods, name: prop.name });
+  res.json({ propertyType: prop.property_type, modules: mods, name: prop.name, theme: prop.theme || 'default', contact_phone: prop.contact_phone, contact_wechat: prop.contact_wechat });
 });
 
 app.get('/api/p/:slug/:module', async (req, res) => {
@@ -299,7 +337,7 @@ app.get('/api/p/:slug/admin/:module', authRequired, propertyOwner, async (req, r
 app.put('/api/p/:slug/admin/:module', authRequired, propertyOwner, async (req, res) => {
   const { slug, module } = req.params;
   if (module === 'modules') {
-    const { enabledModules, propertyType } = req.body;
+    const { enabledModules, propertyType, theme } = req.body;
     if (enabledModules) stmts.updatePropertyModules.run(JSON.stringify(enabledModules), slug);
     if (propertyType) {
       stmts.updatePropertyType.run(propertyType, slug);
@@ -307,7 +345,8 @@ app.put('/api/p/:slug/admin/:module', authRequired, propertyOwner, async (req, r
       info.propertyType = propertyType;
       await writePropDataAsync(slug, 'homestay', info);
     }
-    logAction(req.user.id, slug, 'update_modules', { modules: enabledModules, type: propertyType });
+    if (theme) stmts.updatePropertyTheme.run(theme, slug);
+    logAction(req.user.id, slug, 'update_modules', { modules: enabledModules, type: propertyType, theme });
     return res.json({ success: true });
   }
   await writePropDataAsync(slug, module, req.body);

@@ -1,34 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="theme-warm">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>宿说 - 店铺管理</title>
+<link rel="stylesheet" href="/design-system.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
-:root {
-  --canvas: #fefaf6; --surface-card: #fffbf7; --surface-soft: #faf3eb;
-  --primary: #d4896a; --primary-active: #b86d4f;
-  --ink: #2c2420; --body: #5c4f48; --muted: #8c7b72; --hairline: #e8ddd4;
-  --accent-green: #7da891; --error: #c64545;
-  --rounded-sm: 8px; --rounded-md: 12px; --rounded-full: 9999px;
-  --shadow: 0 1px 3px rgba(44,36,32,0.06), 0 2px 8px rgba(44,36,32,0.04);
-  --font-sans: -apple-system, "PingFang SC", system-ui, "Microsoft YaHei", sans-serif;
-}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-sans);
-  background: var(--surface-soft);
-  color: var(--body);
+  background: var(--bg-alt);
+  color: var(--ink-secondary);
   display: flex; min-height: 100vh;
 }
 
 /* Sidebar */
 .sidebar {
-  width: 230px; background: var(--surface-card);
-  border-right: 1px solid var(--hairline);
+  width: 230px; background: var(--surface);
+  border-right: 1px solid var(--border);
   padding: 20px 0;
   flex-shrink: 0;
   overflow-y: auto;
@@ -41,12 +33,12 @@ body {
 .sidebar a {
   display: block;
   padding: 10px 20px; font-size: 14px;
-  color: var(--body); text-decoration: none;
+  color: var(--ink-secondary); text-decoration: none;
   border-left: 3px solid transparent; cursor: pointer;
   transition: all 0.12s;
 }
 .sidebar a:hover, .sidebar a.active {
-  color: var(--primary); background: var(--surface-soft);
+  color: var(--primary); background: var(--bg-alt);
   border-left-color: var(--primary);
 }
 
@@ -66,9 +58,9 @@ body {
 .fg input[type="url"],
 .fg textarea {
   width: 100%; padding: 10px 14px;
-  border: 1px solid var(--hairline); border-radius: var(--rounded-sm);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
   font-size: 14px; font-family: var(--font-sans);
-  background: var(--surface-card); color: var(--ink);
+  background: var(--surface); color: var(--ink);
   transition: border-color 0.15s;
 }
 .fg textarea { min-height: 80px; resize: vertical; }
@@ -83,27 +75,27 @@ body {
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 14px; font-weight: 500; font-family: var(--font-sans);
-  padding: 10px 22px; border-radius: var(--rounded-full);
+  padding: 10px 22px; border-radius: var(--radius-full);
   border: none; cursor: pointer;
   transition: background 0.12s, transform 0.08s;
 }
 .btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-active); }
-.btn-danger { background: var(--error); color: #fff; }
-.btn-danger:hover { background: #b33a3a; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
 .btn-outline {
-  background: transparent; border: 1px solid var(--hairline);
-  color: var(--body);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--ink-secondary);
 }
 .btn-sm { padding: 5px 14px; font-size: 12px; }
 
 /* Dynamic list */
 .dyn-list { display: flex; flex-direction: column; gap: 14px; }
 .dyn-item {
-  background: var(--surface-soft);
-  padding: 16px; border-radius: var(--rounded-sm);
-  border: 1px solid var(--hairline);
+  background: var(--bg-alt);
+  padding: 16px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   position: relative;
 }
 .dyn-item .dyn-header {
@@ -115,8 +107,8 @@ body {
 /* Image preview */
 .img-preview {
   max-width: 200px; max-height: 130px;
-  border-radius: var(--rounded-sm); margin-top: 8px;
-  display: block; border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); margin-top: 8px;
+  display: block; border: 1px solid var(--border);
 }
 
 /* Toggle */
@@ -125,10 +117,10 @@ body {
 }
 .toggle {
   position: relative; width: 44px; height: 24px;
-  background: var(--hairline); border-radius: 12px;
+  background: var(--border); border-radius: 12px;
   cursor: pointer; transition: background 0.2s;
 }
-.toggle.on { background: var(--accent-green); }
+.toggle.on { background: var(--success); }
 .toggle::after {
   content: ''; position: absolute;
   top: 2px; left: 2px;
@@ -143,8 +135,8 @@ body {
 .msg-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px;
-  background: var(--surface-card); border-radius: var(--rounded-sm);
-  margin-bottom: 8px; border: 1px solid var(--hairline);
+  background: var(--surface); border-radius: var(--radius-sm);
+  margin-bottom: 8px; border: 1px solid var(--border);
   gap: 12px;
 }
 .msg-item .content { flex: 1; font-size: 14px; color: var(--ink); }
@@ -154,10 +146,10 @@ body {
 .toast {
   position: fixed; bottom: 28px; right: 28px;
   background: var(--ink); color: #fff;
-  padding: 12px 24px; border-radius: var(--rounded-full);
+  padding: 12px 24px; border-radius: var(--radius-full);
   font-size: 14px; z-index: 9999;
   display: none;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   animation: fadeInUp 0.2s ease-out;
 }
 @keyframes fadeInUp {
@@ -165,7 +157,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.spinner { border:3px solid var(--hairline); border-top-color:var(--primary); border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
+.spinner { border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* Mobile */
@@ -174,9 +166,9 @@ body {
   .sidebar {
     width: 100%; display: flex; overflow-x: auto;
     padding: 10px 6px 12px; flex-shrink: 0; gap:2px;
-    border-bottom: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 100;
-    background: var(--surface-card);
+    background: var(--surface);
     -webkit-overflow-scrolling: touch;
   }
   .sidebar h2 { display: none; }
@@ -210,15 +202,15 @@ body {
   <a data-tab="messages" onclick="switchTab('messages')">📝 留言管理</a>
   <a data-tab="import" onclick="switchTab('import')">📥 数据导入</a>
   <a data-tab="qrcode" onclick="switchTab('qrcode')">📱 店铺二维码</a>
-  <div style="border-top:1px solid var(--hairline);margin-top:16px;padding:16px 0 12px;">
+  <div style="border-top:1px solid var(--border);margin-top:16px;padding:16px 0 12px;">
     <div style="padding:0 20px;font-size:12px;color:var(--muted);margin-bottom:8px;">
       👤 <span id="sidebarUser"></span>
-      <span id="sidebarAdmin" style="display:none;color:#d4896a;font-weight:500;">（管理员）</span>
+      <span id="sidebarAdmin" style="display:none;color:var(--primary);font-weight:500;">（管理员）</span>
     </div>
     <a onclick="showFeedback()" style="cursor:pointer;font-size:12px;">💬 意见反馈</a>
     <a onclick="showPasswordChange()" style="cursor:pointer;">🔑 修改密码</a>
     <a id="previewLink" href="#" target="_blank" style="font-size:12px;">👁 预览客人端</a>
-    <a onclick="logout()" style="font-size:12px;color:#c62828;">🚪 退出登录</a>
+    <a onclick="logout()" style="font-size:12px;color:var(--danger);">🚪 退出登录</a>
   </div>
 </div>
 
@@ -247,7 +239,10 @@ function toast(msg) {
 
 async function fetchJSON(p) {
   const r = await fetch(API + p, { headers: authHeaders() });
-  if (r.status === 401) { localStorage.removeItem('card_token'); window.location.reload(); return; }
+  if (r.status === 401) {
+    if (TOKEN) { localStorage.removeItem('card_token'); window.location.reload(); }
+    throw new Error('unauthorized');
+  }
   if (!r.ok) throw new Error(p + ' failed');
   return r.json();
 }
@@ -308,7 +303,7 @@ function imgRow(label, fieldId, currentUrl) {
     '<input type="file" accept="image/*" id="' + fileId + '" style="display:none">' +
     '<div style="display:flex;gap:8px;margin-top:8px;">' +
     '<button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById(\'' + fileId + '\').click()">📷 上传</button>' +
-    '<button type="button" class="btn btn-sm btn-outline" id="' + delId + '" onclick="clearImage(\'' + fieldId + '\',\'' + previewId + '\',\'' + delId + '\')" style="color:#c62828;' + (url ? '' : 'display:none') + '">🗑 删除</button>' +
+    '<button type="button" class="btn btn-sm btn-outline" id="' + delId + '" onclick="clearImage(\'' + fieldId + '\',\'' + previewId + '\',\'' + delId + '\')" style="color:var(--danger);' + (url ? '' : 'display:none') + '">🗑 删除</button>' +
     '</div></div>';
 }
 
@@ -319,7 +314,7 @@ async function loadHomestay() {
   document.getElementById('mainContent').innerHTML = `
     <h1>🏡 基本信息</h1>
     <div class="fg"><label>业态类型</label>
-      <select id="f_propertyType" class="type-select" style="padding:10px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;width:100%;background:var(--surface-card);">
+      <select id="f_propertyType" class="type-select" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;width:100%;background:var(--surface);">
         ${types.map(([v,label]) => `<option value="${v}" ${d.propertyType===v?'selected':''}>${label}</option>`).join('')}
       </select>
     </div>
@@ -379,7 +374,7 @@ function dynImgRow(currentUrl) {
   return '<input type="file" accept="image/*" onchange="itemImageUpload(this)" style="font-size:12px;">' +
     '<input type="hidden" data-field="image" value="' + esc(url) + '">' +
     '<img class="img-preview" src="' + esc(url) + '" style="' + (url ? '' : 'display:none') + '">' +
-    '<button type="button" class="btn btn-sm btn-outline btn-del-img" onclick="itemImageDelete(this)" style="color:#c62828;margin-top:4px;' + (url ? '' : 'display:none') + '">🗑 删除图片</button>';
+    '<button type="button" class="btn btn-sm btn-outline btn-del-img" onclick="itemImageDelete(this)" style="color:var(--danger);margin-top:4px;' + (url ? '' : 'display:none') + '">🗑 删除图片</button>';
 }
 
 function collectItems(listId) {
@@ -445,6 +440,7 @@ async function loadGuide() {
   });
   html += `</div>${saveBtnRow('guideList','guide','steps')}`;
   document.getElementById('mainContent').innerHTML = html;
+
 }
 
 // ======== Tab: 景区攻略 ========
@@ -805,7 +801,7 @@ async function loadModules() {
       <h1 style="margin-bottom:0;">⚙️ 模块管理</h1>
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="font-size:13px;color:var(--muted);">当前业态:</span>
-        <select id="modType" style="padding:8px 14px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;background:var(--surface-card);" onchange="switchType()">
+        <select id="modType" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);" onchange="switchType()">
           ${Object.entries(TYPE_NAMES).map(([v,label]) => `<option value="${v}" ${propertyType===v?'selected':''}>${label}</option>`).join('')}
         </select>
         <span style="font-size:11px;color:var(--muted);">切换业态自动重置为默认模块</span>
@@ -818,7 +814,7 @@ async function loadModules() {
   ALL_MODULES.forEach(m => {
     const on = enabled.includes(m.id);
     html += `
-      <div class="mod-item" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface-card);border-radius:var(--rounded-sm);border:1px solid var(--hairline);">
+      <div class="mod-item" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);">
         <div>
           <span style="font-size:15px;font-weight:500;">${m.label}</span>
           <span style="font-size:11px;color:var(--muted);margin-left:8px;">默认: ${m.types.map(t=>TYPE_NAMES[t]||t).join(' ')}</span>
@@ -829,12 +825,47 @@ async function loadModules() {
   });
 
   html += `</div>
+
+    <div style="margin-top:24px;padding:18px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);">
+      <label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:12px;">🎨 店铺主题风格</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;" id="themePicker">
+        <label style="display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;font-size:13px;" class="theme-opt" data-theme="default" data-selected="1"><span>🟢 默认</span><span style="font-size:11px;color:var(--muted);">青绿</span></label>
+        <label style="display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;font-size:13px;" class="theme-opt" data-theme="warm"><span>🟠 暖阳</span><span style="font-size:11px;color:var(--muted);">杏棕</span></label>
+        <label style="display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;font-size:13px;" class="theme-opt" data-theme="wabi"><span>🌿 侘寂</span><span style="font-size:11px;color:var(--muted);">鼠尾草绿</span></label>
+        <label style="display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;font-size:13px;" class="theme-opt" data-theme="ink"><span>🖋 水墨</span><span style="font-size:11px;color:var(--muted);">赭石灰</span></label>
+        <label style="display:flex;align-items:center;gap:6px;padding:10px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;font-size:13px;" class="theme-opt" data-theme="fresh"><span>🌸 清新</span><span style="font-size:11px;color:var(--muted);">杏色奶白</span></label>
+      </div>
+    </div>
+
     <div style="margin-top:20px;display:flex;gap:12px;">
       <button class="btn btn-primary" onclick="saveModules()">💾 保存模块设置</button>
       <button class="btn btn-outline" onclick="resetModules()">🔄 重置为业态默认</button>
     </div>`;
 
   document.getElementById('mainContent').innerHTML = html;
+
+  // 获取当前主题并高亮
+  fetch('/api/p/' + SLUG + '/modules').then(r => r.json()).then(d => {
+    const current = d.theme || 'default';
+    document.querySelectorAll('.theme-opt').forEach(el => {
+      if (el.dataset.theme === current) {
+        el.style.borderColor = 'var(--primary)';
+        el.style.background = 'var(--primary-bg)';
+        el.style.fontWeight = '600';
+        el.dataset.selected = '1';
+      } else {
+        el.dataset.selected = '';
+      }
+      el.onclick = () => {
+        document.querySelectorAll('.theme-opt').forEach(e => { e.style.borderColor = 'var(--border)'; e.style.background = ''; e.style.fontWeight = ''; e.dataset.selected = ''; });
+        el.style.borderColor = 'var(--primary)';
+        el.style.background = 'var(--primary-bg)';
+        el.style.fontWeight = '600';
+        el.dataset.selected = '1';
+      };
+    });
+  });
+
 }
 
 function toggleModule(el) {
@@ -856,7 +887,9 @@ async function saveModules() {
   const enabled = [];
   document.querySelectorAll('.toggle.on[data-mod]').forEach(t => enabled.push(t.dataset.mod));
   const type = document.getElementById('modType').value;
-  await fetch(API + '/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type})});
+  const themeEl = document.querySelector('.theme-opt[data-selected="1"]') || document.querySelector('.theme-opt[data-theme="default"]');
+  const theme = themeEl ? themeEl.dataset.theme : 'default';
+  await fetch(API + '/modules', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabledModules:enabled,propertyType:type,theme:theme})});
   toast('模块设置已保存（' + enabled.length + ' 个模块启用）');
 }
 
@@ -876,14 +909,14 @@ async function loadQRCode() {
     <h1>📱 店铺二维码</h1>
     <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">打印此二维码贴在酒店前台或客房，客人扫码即可查看服务卡片</p>
     <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
-      <div style="background:#fff;padding:24px;border-radius:16px;box-shadow:var(--shadow);text-align:center;">
-        <div id="qrCodeContainer"></div>
-        <p style="color:var(--muted);font-size:12px;margin-top:12px;word-break:break-all;">${guestUrl}</p>
+      <div style="background:#fff;padding:24px;border-radius:16px;box-shadow:var(--shadow-sm);text-align:center;flex-shrink:0;">
+        <div id="qrCodeContainer" style="width:220px;height:220px;margin:0 auto;overflow:hidden;"></div>
+        <p style="color:var(--muted);font-size:12px;margin-top:12px;word-break:break-all;max-width:220px;">${guestUrl}</p>
       </div>
       <div style="flex:1;min-width:220px;">
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+        <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);">
           <h3 style="margin-bottom:12px;font-size:15px;">💡 使用说明</h3>
-          <ol style="font-size:13px;color:var(--body);line-height:2;padding-left:18px;">
+          <ol style="font-size:13px;color:var(--ink-secondary);line-height:2;padding-left:18px;">
             <li>点击下方按钮下载二维码图片</li>
             <li>打印后张贴在前台、客房或餐厅</li>
             <li>客人扫码即可查看服务卡片</li>
@@ -900,15 +933,17 @@ async function loadQRCode() {
     const container = document.getElementById('qrCodeContainer');
     if (container && window.QRCode) {
       container.innerHTML = '';
-      new QRCode(container, { text: guestUrl, width: 220, height: 220, colorDark: '#2c2420', colorLight: '#ffffff' });
+      // 获取实际的 CSS 变量颜色值
+      const style = getComputedStyle(document.documentElement);
+      const darkColor = style.getPropertyValue('--ink').trim() || '#1a1a2e';
+      new QRCode(container, { text: guestUrl, width: 220, height: 220, colorDark: darkColor, colorLight: '#ffffff' });
       // 把 canvas 转成 img，手机才能长按保存
       setTimeout(() => {
         const canvas = container.querySelector('canvas');
         if (canvas) {
           const img = document.createElement('img');
           img.src = canvas.toDataURL('image/png');
-          img.style.width = '220px'; img.style.height = '220px';
-          img.style.display = 'block';
+          img.style.cssText = 'width:220px;height:220px;display:block;max-width:none;';
           canvas.parentNode.replaceChild(img, canvas);
         }
       }, 300);
@@ -952,22 +987,22 @@ async function loadRadar() {
       </p>
 
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+        <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);">
           <div style="font-size:28px;margin-bottom:8px;">📊</div>
           <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格实时监控</div>
           <div style="font-size:13px;color:var(--muted);">美团/途家/小猪三平台同时对比，价格变动实时通知</div>
         </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+        <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);">
           <div style="font-size:28px;margin-bottom:8px;">🎯</div>
           <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">竞争指数分析</div>
           <div style="font-size:13px;color:var(--muted);">MPI/ARI/RGI 三大指标，一眼看懂你在市场中的位置</div>
         </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+        <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);">
           <div style="font-size:28px;margin-bottom:8px;">📍</div>
           <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">定位搜索竞品</div>
           <div style="font-size:13px;color:var(--muted);">GPS 定位 + 途家数据，自动发现周边竞品民宿</div>
         </div>
-        <div style="background:var(--surface-card);border-radius:12px;padding:20px;border:1px solid var(--hairline);">
+        <div style="background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);">
           <div style="font-size:28px;margin-bottom:8px;">🌡️</div>
           <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">价格温度计</div>
           <div style="font-size:13px;color:var(--muted);">你的价格在市场里的位置——偏低有优势还是偏高该降价</div>
@@ -1057,13 +1092,13 @@ function showFeedback() {
       <h1>💬 意见反馈</h1>
       <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">告诉我们你的需求，帮助宿说变得更好</p>
       <div class="fg"><label>反馈类型</label>
-        <select id="fbCat" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;">
+        <select id="fbCat" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
           <option value="suggestion">💡 功能建议</option><option value="bug">🐛 问题反馈</option><option value="praise">❤️ 好评</option><option value="other">📌 其他</option>
         </select>
       </div>
-      <div class="fg"><label>标题 *</label><input type="text" id="fbTitle" placeholder="简单描述你的想法" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
-      <div class="fg"><label>详细说明</label><textarea id="fbContent" placeholder="可以详细说说你的需求或遇到的问题" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;min-height:100px;"></textarea></div>
-      <div class="fg"><label>联系方式（选填）</label><input type="text" id="fbContact" placeholder="微信号或手机号，方便我们回复你" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+      <div class="fg"><label>标题 *</label><input type="text" id="fbTitle" placeholder="简单描述你的想法" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
+      <div class="fg"><label>详细说明</label><textarea id="fbContent" placeholder="可以详细说说你的需求或遇到的问题" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:100px;"></textarea></div>
+      <div class="fg"><label>联系方式（选填）</label><input type="text" id="fbContact" placeholder="微信号或手机号，方便我们回复你" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
       <button class="btn btn-primary" onclick="submitFeedback()">📩 提交反馈</button>
       <a class="btn btn-outline" onclick="switchTab('homestay')" style="text-decoration:none;margin-left:8px;cursor:pointer;font-size:13px;">取消</a>
       <p id="fbMsg" style="margin-top:10px;font-size:13px;"></p>
@@ -1072,7 +1107,7 @@ function showFeedback() {
 
 async function submitFeedback() {
   const title = document.getElementById('fbTitle').value.trim();
-  if (!title) { document.getElementById('fbMsg').textContent = '请填写标题'; document.getElementById('fbMsg').style.color = '#c62828'; return; }
+  if (!title) { document.getElementById('fbMsg').textContent = '请填写标题'; document.getElementById('fbMsg').style.color = 'var(--danger)'; return; }
   const r = await fetch('/api/feedback', { method:'POST', headers:authHeaders(), body:JSON.stringify({
     category: document.getElementById('fbCat').value,
     title,
@@ -1082,8 +1117,8 @@ async function submitFeedback() {
   })});
   const d = await r.json();
   const el = document.getElementById('fbMsg');
-  if (d.success) { el.style.color = '#43a047'; el.textContent = '✅ 感谢反馈！我们会认真处理每一条建议。'; }
-  else { el.style.color = '#c62828'; el.textContent = d.error || '提交失败'; }
+  if (d.success) { el.style.color = 'var(--success)'; el.textContent = '✅ 感谢反馈！我们会认真处理每一条建议。'; }
+  else { el.style.color = 'var(--danger)'; el.textContent = d.error || '提交失败'; }
 }
 
 function showPasswordChange() {
@@ -1091,8 +1126,8 @@ function showPasswordChange() {
     <div style="max-width:440px;">
       <h1>🔑 修改密码</h1>
       <form id="pwForm" style="margin-top:20px;">
-        <div class="fg"><label>原密码</label><input type="password" id="oldPw" required style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
-        <div class="fg"><label>新密码（至少4位）</label><input type="password" id="newPw" required minlength="4" style="width:100%;padding:10px;border:1px solid var(--hairline);border-radius:8px;font-size:14px;"></div>
+        <div class="fg"><label>原密码</label><input type="password" id="oldPw" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
+        <div class="fg"><label>新密码（至少4位）</label><input type="password" id="newPw" required minlength="4" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"></div>
         <button class="btn btn-primary" type="submit">💾 保存</button>
         <a class="btn btn-outline" onclick="switchTab('homestay')" style="text-decoration:none;margin-left:8px;cursor:pointer;font-size:13px;">取消</a>
       </form>
@@ -1103,12 +1138,12 @@ function showPasswordChange() {
     const r = await fetch('/api/me/password', { method:'PUT', headers:authHeaders(), body:JSON.stringify({oldPassword:document.getElementById('oldPw').value,newPassword:document.getElementById('newPw').value}) });
     const d = await r.json();
     const el = document.getElementById('pwMsg');
-    el.style.color = d.success ? '#43a047' : '#c62828';
+    el.style.color = d.success ? 'var(--success)' : 'var(--danger)';
     el.textContent = d.success ? '✅ 密码修改成功' : (d.error || '修改失败');
   };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 显示用户信息
   try {
     const user = JSON.parse(localStorage.getItem('card_user') || 'null');
@@ -1125,24 +1160,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mainContent').innerHTML = `
       <div style="max-width:400px;margin:60px auto;text-align:center;">
         <div style="font-size:48px;margin-bottom:8px;">🏡</div>
-        <h2>${SLUG} 后台管理</h2>
-        <p style="color:var(--muted);margin-bottom:16px;">登录管理你的服务卡片</p>
-        <div style="display:flex;background:#faf3eb;border-radius:10px;padding:4px;margin-bottom:20px;">
-          <div id="tabLogin" style="flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;font-weight:600;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.06);" onclick="switchAuthTab('login')">登 录</div>
-          <div id="tabRegister" style="flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;" onclick="switchAuthTab('register')">注 册</div>
+        <h2>${SLUG} · 商家后台</h2>
+        <p style="color:var(--muted);margin-bottom:4px;">登录管理你的服务卡片</p>
+        <p style="font-size:11px;color:var(--muted-light);margin-bottom:16px;">⚠️ 平台管理员请访问 <a href="/admin" style="color:var(--primary);">/admin</a></p>
+        <div style="display:flex;background:var(--bg-alt);border-radius:10px;padding:4px;margin-bottom:20px;">
+          <div id="tabLogin" style="flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;font-weight:600;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.06);" onclick="switchAuthTab('login')">商家登录</div>
+          <div id="tabRegister" style="flex:1;text-align:center;padding:8px;border-radius:8px;cursor:pointer;" onclick="switchAuthTab('register')">注册账号</div>
         </div>
         <form id="loginFm">
-          <input id="lu" type="text" placeholder="用户名" style="width:100%;padding:12px;border:1px solid var(--hairline);border-radius:8px;margin-bottom:10px;font-size:14px;">
-          <input id="lp" type="password" placeholder="密码" style="width:100%;padding:12px;border:1px solid var(--hairline);border-radius:8px;margin-bottom:10px;font-size:14px;">
-          <button type="submit" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">登 录</button>
+          <input id="lu" type="text" placeholder="用户名" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;">
+          <input id="lp" type="password" placeholder="密码" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;">
+          <button type="submit" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">进入后台</button>
         </form>
         <form id="registerFm" style="display:none;">
-          <input id="ru" type="text" placeholder="用户名（至少2位）" style="width:100%;padding:12px;border:1px solid var(--hairline);border-radius:8px;margin-bottom:10px;font-size:14px;">
-          <input id="rp" type="password" placeholder="密码（至少4位）" style="width:100%;padding:12px;border:1px solid var(--hairline);border-radius:8px;margin-bottom:10px;font-size:14px;">
-          <button type="submit" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">注 册</button>
+          <input id="ru" type="text" placeholder="用户名（至少2位）" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;">
+          <input id="rp" type="password" placeholder="密码（至少4位）" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:14px;">
+          <button type="submit" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">注册并进入后台</button>
         </form>
         <p style="font-size:12px;color:var(--muted);margin-top:12px;">还没有账号？点上方「注册」创建</p>
-        <p id="lerr" style="color:var(--error);margin-top:8px;font-size:13px;min-height:20px;"></p>
+        <p id="lerr" style="color:var(--danger);margin-top:8px;font-size:13px;min-height:20px;"></p>
       </div>`;
 
     window.switchAuthTab = (tab) => {
@@ -1175,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('registerFm').onsubmit = async (e) => {
       e.preventDefault();
-      const r = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('ru').value,password:document.getElementById('rp').value}) });
+      const r = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('ru').value,password:document.getElementById('rp').value,property_slug:SLUG}) });
       const d = await r.json();
       if (d.token) {
         TOKEN = d.token;
