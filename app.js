@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { db, stmts, propDir, readPropData, writePropData, readPropDataAsync, writePropDataAsync, initPropertyData, TYPE_MODULES, withLock } = require('./db');
 
-const path.join(__dirname, 'uploads') = process.env.path.join(__dirname, 'uploads') || path.join(__dirname, 'uploads');
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
 const rateLimit = require('express-rate-limit');
 const { execSync } = require('child_process');
 const importPlugin = require('./plugins/import');
