@@ -9,11 +9,11 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-RUN mkdir -p /app/persist/data /app/persist/data/properties /app/persist/uploads
+RUN chmod +x start.sh
 
 ENV DATA_DIR=/app/persist/data
 ENV UPLOADS_DIR=/app/persist/uploads
 
 EXPOSE 3000
 
-CMD ["node", "app.js"]
+CMD ["./start.sh"]
