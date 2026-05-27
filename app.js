@@ -9,6 +9,7 @@ const multer = require('multer');
 const { db, stmts, propDir, readPropData, writePropData, readPropDataAsync, writePropDataAsync, initPropertyData, TYPE_MODULES, withLock } = require('./db');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 
 // 确保关键目录在启动时存在（特别是 Railway 卷挂载场景）
 [DATA_DIR, path.join(DATA_DIR, 'properties'), UPLOADS_DIR].forEach(dir => {
@@ -27,7 +28,6 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { er
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const JWT_SECRET_FILE = path.join(DATA_DIR, '.jwt_secret');
 const JWT_SECRET = (() => {
   const key = process.env.JWT_SECRET;
