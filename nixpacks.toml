@@ -1,5 +1,5 @@
 [phases.setup]
-packages = ["python3", "gcc", "g++"]
+packages = ["python3", "gcc", "g++", "gnumake"]
 
 [phases.build]
 cmds = ["npm ci"]
