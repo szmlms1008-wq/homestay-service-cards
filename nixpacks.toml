@@ -1,0 +1,8 @@
+[phases.setup]
+packages = ["python3", "gcc", "g++"]
+
+[phases.build]
+cmds = ["npm ci"]
+
+[start]
+cmd = "node app.js"
