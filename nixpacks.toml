@@ -5,4 +5,4 @@ packages = ["python3", "gcc", "g++", "gnumake"]
 cmds = ["npm ci"]
 
 [start]
-cmd = "node app.js"
+cmd = "mkdir -p /app/persist/data /app/persist/data/properties /app/persist/uploads && node app.js"
