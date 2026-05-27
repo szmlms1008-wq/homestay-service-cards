@@ -5,4 +5,4 @@ packages = ["python3", "gcc", "g++", "gnumake"]
 cmds = ["npm ci"]
 
 [start]
-cmd = "mkdir -p /app/persist/data /app/persist/data/properties /app/persist/uploads && node app.js"
+cmd = "echo '[启动] 创建目录...' && mkdir -p /app/persist/data /app/persist/data/properties /app/persist/uploads && echo '[启动] Node:' && node --version && echo '[启动] 运行 app.js...' && node app.js"

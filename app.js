@@ -9,6 +9,11 @@ const multer = require('multer');
 const { db, stmts, propDir, readPropData, writePropData, readPropDataAsync, writePropDataAsync, initPropertyData, TYPE_MODULES, withLock } = require('./db');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
+
+// 全局异常捕获，防止静默崩溃
+process.on('uncaughtException', (err) => { console.error('[致命错误]', err.message, err.stack); process.exit(1); });
+process.on('unhandledRejection', (reason) => { console.error('[未处理拒绝]', reason); });
+
 const rateLimit = require('express-rate-limit');
 const { execSync } = require('child_process');
 const importPlugin = require('./plugins/import');
