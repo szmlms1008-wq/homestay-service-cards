@@ -27,6 +27,7 @@ const importPlugin = require('./plugins/import');
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: '请求过于频繁，请15分钟后再试' } });
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET_FILE = path.join(DATA_DIR, '.jwt_secret');
 const JWT_SECRET = (() => {
