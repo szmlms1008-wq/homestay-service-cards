@@ -6,4 +6,3 @@ uploads
 *.md
 docs
 .DS_Store
-public/qrcodes
