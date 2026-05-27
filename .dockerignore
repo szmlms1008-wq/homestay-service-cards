@@ -1,0 +1,9 @@
+node_modules
+data
+uploads
+.git
+.gitignore
+*.md
+docs
+.DS_Store
+public/qrcodes

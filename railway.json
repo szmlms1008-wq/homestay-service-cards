@@ -1,6 +1,6 @@
 {
   "build": {
-    "builder": "nixpacks"
+    "builder": "docker"
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE"
