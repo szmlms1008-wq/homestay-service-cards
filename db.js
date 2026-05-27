@@ -3,9 +3,11 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'data', 'platform.db');
-const PROPS_DIR = path.join(__dirname, 'data', 'properties');
-const RECOVERY_FILE = path.join(__dirname, 'data', '.admin-recovery');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const DB_PATH = path.join(DATA_DIR, 'platform.db');
+const PROPS_DIR = path.join(DATA_DIR, 'properties');
+const RECOVERY_FILE = path.join(DATA_DIR, '.admin-recovery');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');

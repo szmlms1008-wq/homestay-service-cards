@@ -17,7 +17,8 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { er
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET_FILE = path.join(__dirname, 'data', '.jwt_secret');
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const JWT_SECRET_FILE = path.join(DATA_DIR, '.jwt_secret');
 const JWT_SECRET = (() => {
   const key = process.env.JWT_SECRET;
   if (key) return key;
@@ -431,12 +432,12 @@ setInterval(async () => {
 setInterval(() => {
   const now = new Date();
   if (now.getHours() === 3 && now.getMinutes() < 5) { // 凌晨3点
-    const backupDir = path.join(__dirname, 'data', 'backups');
+    const backupDir = path.join(DATA_DIR, 'backups');
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
     try {
-      fs.copyFileSync(path.join(__dirname, 'data', 'platform.db'), path.join(backupDir, 'platform-' + dateStr + '.db'));
-      console.log('[备份] 数据已备份到 data/backups/platform-' + dateStr + '.db');
+      fs.copyFileSync(path.join(DATA_DIR, 'platform.db'), path.join(backupDir, 'platform-' + dateStr + '.db'));
+      console.log('[备份] 数据已备份到 ' + backupDir + '/platform-' + dateStr + '.db');
       // 只保留最近7天的备份
       const files = fs.readdirSync(backupDir).filter(f => f.endsWith('.db')).sort();
       while (files.length > 7) {
@@ -456,15 +457,14 @@ app.get('/api/admin/export', authRequired, adminRequired, (req, res) => {
   const tmpZip = path.join(require('os').tmpdir(), 'sushuo-export-' + dateStr + '.zip');
   try {
     // 用系统 zip 打包
-    const dataDir = path.join(__dirname, 'data');
-    const uploadsDir = path.join(__dirname, 'uploads');
+    const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
     const files = [];
-    if (fs.existsSync(path.join(dataDir, 'platform.db'))) files.push('data/platform.db');
-    if (fs.existsSync(path.join(dataDir, 'properties'))) files.push('data/properties');
-    if (fs.existsSync(path.join(dataDir, '.admin-recovery'))) files.push('data/.admin-recovery');
-    if (fs.existsSync(uploadsDir)) files.push('uploads');
+    if (fs.existsSync(path.join(DATA_DIR, 'platform.db'))) files.push(path.join(DATA_DIR, 'platform.db'));
+    if (fs.existsSync(path.join(DATA_DIR, 'properties'))) files.push(path.join(DATA_DIR, 'properties'));
+    if (fs.existsSync(path.join(DATA_DIR, '.admin-recovery'))) files.push(path.join(DATA_DIR, '.admin-recovery'));
+    if (fs.existsSync(uploadsDir)) files.push(uploadsDir);
     if (files.length === 0) return res.status(400).json({ error: '没有数据可导出' });
-    execSync('zip -r "' + tmpZip + '" ' + files.join(' ') + ' -x "uploads/.gitkeep" "data/properties/.gitkeep"', { cwd: __dirname, stdio: 'pipe' });
+    execSync('zip -r "' + tmpZip + '" ' + files.map(f => '"' + f + '"').join(' '), { stdio: 'pipe' });
     res.set('Content-Type', 'application/zip');
     res.set('Content-Disposition', 'attachment; filename=sushuo-' + dateStr + '.zip');
     res.sendFile(tmpZip, () => { try { fs.unlinkSync(tmpZip); } catch(e) {} });
