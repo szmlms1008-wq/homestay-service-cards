@@ -4,13 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>宿说 - 让住所替你说</title>
+<link rel="stylesheet" href="/design-system.css">
 <style>
-:root {
-  --primary: #0d9488; --primary-dark: #0f766e;
-  --bg: #f5f6f8; --ink: #1a1a2e; --muted: #889999; --border: #eef0f4;
-}
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-sans); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
 .container { max-width: 480px; margin: 0 auto; padding: 40px 20px; }
 .card { background: #fff; border-radius: 16px; padding: 32px 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
 h1 { font-size: 24px; text-align: center; margin-bottom: 6px; }
@@ -22,8 +19,8 @@ h1 { font-size: 24px; text-align: center; margin-bottom: 6px; }
 .btn-outline { background:#fff; color:var(--primary); border:1px solid var(--primary); margin-top:8px; }
 .link { text-align:center; font-size:13px; color:var(--muted); margin-top:12px; }
 .link a { color:var(--primary); text-decoration:none; font-weight:500; }
-.err { color:#c62828; font-size:13px; text-align:center; margin-top:8px; min-height:20px; }
-.tabs { display:flex; gap:0; margin-bottom:20px; background:#f5f6f8; border-radius:10px; padding:4px; }
+.err { color:var(--danger); font-size:13px; text-align:center; margin-top:8px; min-height:20px; }
+.tabs { display:flex; gap:0; margin-bottom:20px; background:var(--bg-alt); border-radius:10px; padding:4px; }
 .tab { flex:1; text-align:center; padding:8px; border-radius:8px; cursor:pointer; font-size:14px; transition:all 0.15s; }
 .tab.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); font-weight:600; }
 </style>

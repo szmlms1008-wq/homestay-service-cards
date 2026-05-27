@@ -10,6 +10,11 @@ const { db, stmts, propDir, readPropData, writePropData, readPropDataAsync, writ
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
 
+// 确保关键目录在启动时存在（特别是 Railway 卷挂载场景）
+[DATA_DIR, path.join(DATA_DIR, 'properties'), UPLOADS_DIR].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
 // 全局异常捕获，防止静默崩溃
 process.on('uncaughtException', (err) => { console.error('[致命错误]', err.message, err.stack); process.exit(1); });
 process.on('unhandledRejection', (reason) => { console.error('[未处理拒绝]', reason); });
@@ -37,7 +42,7 @@ const JWT_SECRET = (() => {
 const FEATURE_RADAR = process.env.FEATURE_RADAR === 'true';
 
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // 错误日志：拦截所有 4xx/5xx JSON 响应
 app.use((req, res, next) => {
@@ -82,7 +87,7 @@ function logAction(userId, propSlug, action, details) {
 
 // Multer
 const storage = multer.diskStorage({
-  destination: path.join(__dirname, 'uploads'),
+  destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
