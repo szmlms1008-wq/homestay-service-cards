@@ -294,6 +294,8 @@ body {
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
 </style>
+.hero-body h1:empty::after { content: '加载中...'; color: rgba(255,255,255,0.6); }
+</style>
 </head>
 <body>
 
@@ -303,8 +305,8 @@ body {
   <div class="hero-overlay"></div>
   <div class="hero-body">
     <div id="heroLogo"><span class="logo-emoji">🏡</span></div>
-    <h1 id="heroName">山居小筑</h1>
-    <p class="desc" id="heroDesc">隐匿于山水间的温暖居所</p>
+    <h1 id="heroName"></h1>
+    <p class="desc" id="heroDesc"></p>
     <p class="addr" id="heroAddr"></p>
     <div class="tags" id="heroTags"></div>
   </div>
@@ -404,8 +406,10 @@ body {
 </div>
 
 <script>
-const SLUG = window.location.pathname.split('/p/')[1]?.split('/')[0] || '';
+const SLUG = decodeURIComponent(window.location.pathname.split('/p/')[1]?.split('/')[0] || '');
 const API = '/api/p/' + SLUG;
+let initRunning = false;
+let initDone = false;
 
 async function getJSON(path) {
   const r = await fetch(API + path);
@@ -422,10 +426,8 @@ async function applyTheme() {
     const theme = mod.theme || 'default';
     const themeClass = theme === 'default' ? '' : 'theme-' + theme;
     document.documentElement.className = themeClass;
-    console.log('[宿说] 主题已应用:', theme, '→ class:', themeClass || '(default)');
     return mod;
   } catch(e) {
-    console.error('[宿说] 主题加载失败:', e);
     return {};
   }
 }
@@ -622,6 +624,8 @@ async function loadNearby() {
 
 // Init
 async function init() {
+  if (initRunning) return;
+  initRunning = true;
   try {
     const modResp = await applyTheme();
     const modules = modResp.modules || null;
@@ -655,13 +659,19 @@ async function init() {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.12 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    initDone = true;
   } catch(err) {
     console.error('Page init error:', err);
+  } finally {
+    initRunning = false;
   }
 }
 
 document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) init(); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !initDone && !initRunning) init();
+});
 </script>
 </body>
 </html>
